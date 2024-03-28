@@ -1,9 +1,6 @@
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
 
@@ -235,6 +232,22 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
         m_NumTransactions = numTransactions;
     }
 
+
+    /**
+     *
+     * Parsing options
+     */
+    public void optionsParser(String[] options) throws Exception {
+        System.out.println(Arrays.toString(options));
+
+        String tmpStr = Utils.getOption('n', options);
+        if (tmpStr.length() != 0) {
+            setNumTransactions(Integer.parseInt(tmpStr));
+        } else {
+            setNumTransactions(defaultNumTransactions());
+        }
+    }
+
     /**
      * Gets the number of transactions to generate.
      *
@@ -322,7 +335,6 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
         Instances dataset = defineDataFormat();
         dataset.setClassIndex(dataset.numAttributes() - 1); // Set class index
 
-        System.out.println(dataset);
         for (int i = 0; i < getNumTransactions(); i++) {
             Instance instance = new DenseInstance(4); // Generate instance using superclass method
 
@@ -350,24 +362,21 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
      */
     public static void main(String[] args) {
         TransactionsGenPlugin generator = new TransactionsGenPlugin();
+        System.out.println(Arrays.toString(args));
+
         // Set options
-        /*try {
-            generator.setOptions(args);
+        try {
+            generator.optionsParser(args);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
-        }*/
+        }
 
         // Generate dataset
         try {
             Instances dataset = generator.generateExamples();
-
             // Output dataset to ARFF file
             String outputFile = Utils.getOption('o', args);
-            System.out.println("ok");
-            System.out.println(outputFile);
-            System.out.println("ko");
-
             if (outputFile == null || outputFile.isEmpty()) {
                 System.out.println("Output file not specified. Use -o <output_file.arff> to specify output file. Saving to output.arff");
                 outputFile = "./output.arff";
