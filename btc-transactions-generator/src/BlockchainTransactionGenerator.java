@@ -61,7 +61,7 @@ public class BlockchainTransactionGenerator {
     }
 
     private static String generateRandomAddress() {
-        return "0x" + Long.toHexString(new Random().nextLong()).toUpperCase();
+        return "bc1q" + Long.toHexString(new Random().nextLong()).toUpperCase();
     }
 
     private static double generateRandomAmount() {
