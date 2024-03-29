@@ -1,3 +1,5 @@
+package com.BitcoinTransacGen;
+
 import weka.core.Instances;
 import weka.core.Instance;
 import weka.core.Attribute;
