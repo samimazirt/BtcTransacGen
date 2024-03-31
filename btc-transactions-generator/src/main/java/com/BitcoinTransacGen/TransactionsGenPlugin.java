@@ -1,8 +1,7 @@
+package com.BitcoinTransacGen;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
 
 import weka.core.*;
 import weka.core.converters.ArffSaver;
@@ -354,7 +353,7 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
     }
 
     /**
-     * Main method for executing this class.
+     * com.BitcoinTransacGen.Main method for executing this class.
      *
      * @param args should contain arguments for the data producer:
      *             -o <output_file.arff>: specify the output ARFF file name
