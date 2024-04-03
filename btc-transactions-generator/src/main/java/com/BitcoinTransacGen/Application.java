@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Logger;
 import java.net.HttpURLConnection;
 
@@ -28,6 +29,14 @@ class JsonRPCClient extends BitcoinJSONRPCClient {
 	public Map<String, Object> createWallet(String name) throws GenericRpcException {
 		return (Map<String, Object>) this.query("createwallet", name, false, false, "", false, false);
 	}
+
+	public Map<String, Object> loadWallet(String name) throws GenericRpcException {
+		return (Map<String, Object>) this.query("loadwallet", name);
+	}
+
+	public Map<String, Object> unloadWallet(String name) throws GenericRpcException {
+		return (Map<String, Object>) this.query("unloadwallet", name);
+	}
 }
 
 public class Application
@@ -46,7 +55,7 @@ public class Application
 		// 2. make sure the bitcoin client is running
 		// 3. make sure it is running on regtest
 
-		//signRawTransactionWithKeyTest_P2SH_MultiSig(client);
+		signRawTransactionWithKeyTest_P2SH_MultiSig(client);
 		signRawTransactionWithKeyTest_P2SH_P2WPKH(client);
 	}
 
@@ -60,10 +69,10 @@ public class Application
 		LOGGER.info("Preparing tx1 (addr3 -> multisig)");
 
 		JsonRPCClient jsonRpcClient = new JsonRPCClient();
-
+		String randomWalletName = generateRandomString(10);
 		// Call createWallet function from JsonRPCClient
 		try {
-			Map<String, Object> result = jsonRpcClient.createWallet("mywallet");
+			Map<String, Object> result = jsonRpcClient.createWallet(randomWalletName);
 			String walletName = (String) result.get("name");
 			String warning = (String) result.get("warning");
 			LOGGER.info("Wallet created: " + walletName);
@@ -73,6 +82,23 @@ public class Application
 		} catch (GenericRpcException e) {
 			LOGGER.severe("Error creating wallet: " + e.getMessage());
 			//return; // Exit the function if an error occurs
+
+			//loading because couldn't create cause already exist
+			try {
+				Map<String, Object> result = jsonRpcClient.loadWallet(randomWalletName);
+				String walletName = (String) result.get("name");
+				String warning = (String) result.get("warning");
+				LOGGER.info("Wallet loaded: " + walletName);
+				if (warning != null) {
+					LOGGER.warning("Warning: " + warning);
+				}
+			} catch (GenericRpcException eLoad) {
+				LOGGER.severe("Error loading wallet: " + eLoad.getMessage());
+				//return; // Exit the function if an error occurs
+			}
+
+
+
 		}
 
 
@@ -176,6 +202,21 @@ public class Application
 		BitcoindRpcClient.Transaction transaction = client.getTransaction(sentRawTransactionID);
 		System.out.println("Transaction details:\n" + prettyPrintJson(transaction.toString()));
 
+		//unload wallet
+		try {
+			Map<String, Object> result = jsonRpcClient.unloadWallet(randomWalletName);
+			String walletName = (String) result.get("name");
+			String warning = (String) result.get("warning");
+			LOGGER.info("Wallet unloaded: " + walletName);
+			if (warning != null) {
+				LOGGER.warning("Warning: " + warning);
+			}
+		} catch (GenericRpcException e) {
+			LOGGER.severe("Error unloading wallet: " + e.getMessage());
+			//return; // Exit the function if an error occurs
+		}
+
+
 	}
 
 	/**
@@ -186,9 +227,10 @@ public class Application
 		LOGGER.info("=== Testing scenario: signRawTransactionWithKey (addr1 -> addr2)");
 		// Call createWallet function from JsonRPCClient
 		JsonRPCClient jsonRpcClient = new JsonRPCClient();
+		String randomWalletName = generateRandomString(10);
 
 		try {
-			Map<String, Object> result = jsonRpcClient.createWallet("test");
+			Map<String, Object> result = jsonRpcClient.createWallet(randomWalletName);
 			String walletName = (String) result.get("name");
 			String warning = (String) result.get("warning");
 			LOGGER.info("Wallet created: " + walletName);
@@ -198,6 +240,23 @@ public class Application
 		} catch (GenericRpcException e) {
 			LOGGER.severe("Error creating wallet: " + e.getMessage());
 			//return; // Exit the function if an error occurs
+
+
+			try {
+				Map<String, Object> result = jsonRpcClient.loadWallet(randomWalletName);
+				String walletName = (String) result.get("name");
+				String warning = (String) result.get("warning");
+				LOGGER.info("Wallet loaded: " + walletName);
+				if (warning != null) {
+					LOGGER.warning("Warning: " + warning);
+				}
+			} catch (GenericRpcException eLoad) {
+				LOGGER.severe("Error loading wallet: " + eLoad.getMessage());
+				//return; // Exit the function if an error occurs
+			}
+
+
+
 		}
 
 		String addr1 = client.getNewAddress();
@@ -236,9 +295,7 @@ public class Application
 
 		String tx1ID = client.sendToAddress(addr1, selectedUtxo.amount());
 		LOGGER.info("UTXO sent to P2SH-multiSigAddr, tx1 ID: " + tx1ID);
-		BitcoindRpcClient.Transaction tranzesaction = client.getTransaction(tx1ID);
 		//System.out.println(transaction.());
-		System.out.println("Transaction detzefzails:\n" + prettyPrintJson(tranzesaction.toString()));
 
 
 		// Found no other reliable way to estimate the fee in a test
@@ -251,7 +308,6 @@ public class Application
 		LOGGER.info("unsignedRawTx out amount: " + txToAddr2Amount);
 
 		String unsignedRawTxHex = rawTxBuilder.create();
-		System.out.println("oooo"+ prettyPrintJson(unsignedRawTxHex.toString()));
 
 		LOGGER.info("Created unsignedRawTx from addr1 to addr2: " + unsignedRawTxHex);
 		// Sign tx
@@ -280,6 +336,20 @@ public class Application
 		BitcoindRpcClient.Transaction transaction = client.getTransaction(sentRawTransactionID);
 		//System.out.println(transaction.());
 		System.out.println("Transaction details:\n" + prettyPrintJson(transaction.toString()));
+
+		//unload wallet
+		try {
+			Map<String, Object> result = jsonRpcClient.unloadWallet(randomWalletName);
+			String walletName = (String) result.get("name");
+			String warning = (String) result.get("warning");
+			LOGGER.info("Wallet unloaded: " + walletName);
+			if (warning != null) {
+				LOGGER.warning("Warning: " + warning);
+			}
+		} catch (GenericRpcException e) {
+			LOGGER.severe("Error unloading wallet: " + e.getMessage());
+			//return; // Exit the function if an error occurs
+		}
 	}
 
 	private static String prettyPrintJson(String jsonData) {
@@ -319,6 +389,29 @@ public class Application
 			}
 		}
 		return prettyJson.toString();
+	}
+
+	public static String generateRandomString(int length) {
+		// Define the characters that can be used in the random string
+		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+		// Initialize a Random object
+		Random random = new Random();
+
+		// Initialize a StringBuilder to build the random string
+		StringBuilder sb = new StringBuilder(length);
+
+		// Loop to generate random characters and append them to the StringBuilder
+		for (int i = 0; i < length; i++) {
+			// Generate a random index within the range of characters
+			int randomIndex = random.nextInt(characters.length());
+
+			// Append the character at the random index to the StringBuilder
+			sb.append(characters.charAt(randomIndex));
+		}
+
+		// Convert the StringBuilder to a String and return it
+		return sb.toString();
 	}
 
 	private static void addIndentation(int indentLevel, StringBuilder stringBuilder) {
