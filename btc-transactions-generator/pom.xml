@@ -39,6 +39,11 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.21</version>
 		</dependency>
+		<dependency>
+			<groupId>wf.bitcoin</groupId>
+			<artifactId>bitcoin-rpc-client</artifactId>
+			<version>1.2.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
