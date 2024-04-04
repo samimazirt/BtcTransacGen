@@ -41,6 +41,6 @@ Then run application.java.
 need to run from command line:
 
 mvn compile (you need maven)
-mvn exec:java -Dexec.mainClass="com.BitcoinTransacGen.TransactionsGenPlugin" -Dexec.args="-output test.arff -n 3"
+mvn exec:java -Dexec.mainClass="com.BitcoinTransacGen.TransactionsGenPlugin" -Dexec.args="-o test.arff -n 3"
 output name of the output file
 n number of transactions
