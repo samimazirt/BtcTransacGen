@@ -36,3 +36,11 @@ replace rpcuser, rpcpassword and rpcauth with the output values of the previous 
 Run: bitcoind -regtest -conf=<Path/To/bitcoin.conf>
 
 Then run application.java.
+
+
+need to run from command line:
+
+mvn compile (you need maven)
+mvn exec:java -Dexec.mainClass="com.BitcoinTransacGen.TransactionsGenPlugin" -Dexec.args="-output test.arff -n 3"
+output name of the output file
+n number of transactions

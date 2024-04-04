@@ -3,9 +3,14 @@ package com.BitcoinTransacGen;
 import java.io.File;
 import java.util.*;
 
+import com.google.gson.*;
 import weka.core.*;
 import weka.core.converters.ArffSaver;
 import weka.datagenerators.ClassificationGenerator;
+import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
+import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
+import wf.bitcoin.javabitcoindrpcclient.util.Chain;
+import wf.bitcoin.javabitcoindrpcclient.util.Util;
 
 public class TransactionsGenPlugin extends ClassificationGenerator {
 
@@ -182,7 +187,7 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
      * @return the default number of attributes
      */
     protected int defaultNumAttributes() {
-        return 4; // We'll have two attributes: transaction fee and transaction size
+        return 25; // We'll have two attributes: transaction fee and transaction size
     }
 
     /**
@@ -240,6 +245,7 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
         System.out.println(Arrays.toString(options));
 
         String tmpStr = Utils.getOption('n', options);
+        System.out.println("laaaaaaaa" + tmpStr);
         if (tmpStr.length() != 0) {
             setNumTransactions(Integer.parseInt(tmpStr));
         } else {
@@ -275,20 +281,72 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
     @Override
     public Instances defineDataFormat() throws Exception {
         ArrayList<Attribute> atts = new ArrayList<Attribute>();
+        ArrayList<String> trustedValues = new ArrayList<String>(2);
+        trustedValues.add("true");
+        trustedValues.add("false");
 
-        // Add attributes for sender address and receiver address as String attributes
-        Attribute senderAddress = new Attribute("sender_address", (ArrayList<String>) null);
-        Attribute receiverAddress = new Attribute("receiver_address", (ArrayList<String>) null);
+        Attribute amount = new Attribute("amount");
+        Attribute fee = new Attribute("fee");
+        Attribute confirmations = new Attribute("confirmations");
+        //Attribute trusted = new Attribute("trusted");
+        Attribute txid = new Attribute("txid", (ArrayList<String>) null);
+        Attribute wtxid = new Attribute("wtxid", (ArrayList<String>) null);
+        Attribute time = new Attribute("time");
+        Attribute timereceived = new Attribute("timereceived");
+        Attribute bip125Replaceable = new Attribute("bip125_replaceable", (ArrayList<String>) null);
+        Attribute details = new Attribute("details");
+        Attribute hex = new Attribute("hex", (ArrayList<String>) null);
 
-        // Add attributes for transaction fee and transaction size as numeric attributes
-        Attribute transactionFee = new Attribute("transaction_fee");
-        Attribute transactionSize = new Attribute("transaction_size");
+// Attributes for details array elements
+        Attribute address1 = new Attribute("address1", (ArrayList<String>) null);
+        Attribute category1 = new Attribute("category1", (ArrayList<String>) null);
+        Attribute amount1 = new Attribute("amount1");
+        Attribute label1 = new Attribute("label1", (ArrayList<String>) null);
+        Attribute vout1 = new Attribute("vout1");
+        Attribute fee1 = new Attribute("fee1");
+        Attribute abandoned1 = new Attribute("abandoned1", trustedValues);
+
+        Attribute address2 = new Attribute("address2", (ArrayList<String>) null);
+        Attribute parentDescs2 = new Attribute("parent_descs2");
+        Attribute category2 = new Attribute("category2", (ArrayList<String>) null);
+        Attribute amount2 = new Attribute("amount2");
+        Attribute label2 = new Attribute("label2", (ArrayList<String>) null);
+        Attribute vout2 = new Attribute("vout2");
+
+        Attribute hexValue = new Attribute("hex_value");
+
 
         // Add all attributes to the atts list
-        atts.add(senderAddress);
-        atts.add(receiverAddress);
-        atts.add(transactionFee);
-        atts.add(transactionSize);
+        atts.add(amount);
+        atts.add(fee);
+        atts.add(confirmations);
+        atts.add(new Attribute("trusted", trustedValues));;
+        atts.add(txid);
+        atts.add(wtxid);
+        atts.add(time);
+        atts.add(timereceived);
+        atts.add(bip125Replaceable);
+        atts.add(details);
+        atts.add(hex);
+
+// Add attributes for details array elements
+        atts.add(address1);
+        atts.add(category1);
+        atts.add(amount1);
+        atts.add(label1);
+        atts.add(vout1);
+        atts.add(fee1);
+        atts.add(abandoned1);
+
+        atts.add(address2);
+        atts.add(parentDescs2);
+        atts.add(category2);
+        atts.add(amount2);
+        atts.add(label2);
+        atts.add(vout2);
+
+        atts.add(hexValue);
+
 
 
         // Create Instances object with the defined attributes
@@ -352,6 +410,75 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
         return dataset;
     }
 
+    public Instances generateFromApplication() throws Exception {
+        Gson gson = new Gson();
+
+        Instances dataset = defineDataFormat();
+        dataset.setClassIndex(dataset.numAttributes() - 1); // Set class index
+
+        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
+
+        BitcoindRpcClient client = new BitcoinJSONRPCClient();
+        Util.ensureRunningOnChain(Chain.REGTEST, client);
+
+        for (int i = 0; i < getNumTransactions(); i++) {
+            Instance instance = new DenseInstance(dataset.numAttributes()); // Generate instance using superclass method
+
+            // Associate the instance with the dataset
+            instance.setDataset(dataset);
+
+            String transaction = Application.signRawTransactionWithKeyTest_P2SH_P2WPKH(client);
+            String preprocessedTransaction = transaction.replaceAll("label=,", "label=empty,");
+            System.out.println("eeeee" + preprocessedTransaction);
+            JsonObject transactionObject = new JsonObject();
+            try {
+                transactionObject = gson.fromJson(preprocessedTransaction, JsonObject.class);
+                // Process the transactionObject
+            } catch (JsonSyntaxException e) {
+                // Handle the JSON parsing error
+                e.printStackTrace(); // Print the stack trace for debugging
+                // Handle the error gracefully, e.g., log it or display a friendly error message
+            }
+
+            // Set values from transactionObject to respective attributes
+            instance.setValue(dataset.attribute("amount"), transactionObject.get("amount").getAsDouble());
+            instance.setValue(dataset.attribute("fee"), transactionObject.get("fee").getAsDouble());
+            instance.setValue(dataset.attribute("confirmations"), transactionObject.get("confirmations").getAsInt());
+            instance.setValue(dataset.attribute("trusted"), String.valueOf(transactionObject.get("trusted").getAsBoolean()));
+            instance.setValue(dataset.attribute("txid"), transactionObject.get("txid").getAsString());
+            instance.setValue(dataset.attribute("wtxid"), transactionObject.get("wtxid").getAsString());
+            instance.setValue(dataset.attribute("time"), transactionObject.get("time").getAsLong());
+            instance.setValue(dataset.attribute("timereceived"), transactionObject.get("timereceived").getAsLong());
+            instance.setValue(dataset.attribute("bip125_replaceable"), transactionObject.get("bip125-replaceable").getAsString());
+            instance.setValue(dataset.attribute("hex"), transactionObject.get("hex").getAsString());
+
+            JsonArray detailsArray = transactionObject.getAsJsonArray("details");
+
+            for (int j = 0; j < detailsArray.size(); j++) {
+                JsonObject detailObject = detailsArray.get(j).getAsJsonObject();
+
+                // Now you can use `i` as the index
+                // Set values for details array attributes
+                System.out.println("address" + (j + 1));
+                if (j == 0) {
+                    instance.setValue(dataset.attribute("fee" + (j + 1)), detailObject.get("fee").getAsDouble());
+                    instance.setValue(dataset.attribute("abandoned" + (j + 1)), String.valueOf(detailObject.get("abandoned").getAsBoolean()));
+                }
+                instance.setValue(dataset.attribute("address" + (j + 1)), detailObject.get("address").getAsString());
+                instance.setValue(dataset.attribute("category" + (j + 1)), detailObject.get("category").getAsString());
+                instance.setValue(dataset.attribute("amount" + (j + 1)), detailObject.get("amount").getAsDouble());
+                instance.setValue(dataset.attribute("label" + (j + 1)), detailObject.get("label").getAsString());
+                instance.setValue(dataset.attribute("vout" + (j + 1)), detailObject.get("vout").getAsInt());
+            }
+
+            // Generate random transaction fee, size, sender address, and receiver address
+
+            dataset.add(instance);
+        }
+
+        return dataset;
+    }
+
     /**
      * com.BitcoinTransacGen.Main method for executing this class.
      *
@@ -363,7 +490,6 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
         TransactionsGenPlugin generator = new TransactionsGenPlugin();
         System.out.println(Arrays.toString(args));
 
-        // Set options
         try {
             generator.optionsParser(args);
         } catch (Exception e) {
@@ -371,9 +497,10 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
             System.exit(1);
         }
 
+
         // Generate dataset
         try {
-            Instances dataset = generator.generateExamples();
+            Instances dataset = generator.generateFromApplication();
             // Output dataset to ARFF file
             String outputFile = Utils.getOption('o', args);
             if (outputFile == null || outputFile.isEmpty()) {
