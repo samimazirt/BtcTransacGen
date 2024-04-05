@@ -1,20 +1,12 @@
 package com.BitcoinTransacGen;
 
-import java.io.Reader;
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import wf.bitcoin.javabitcoindrpcclient.*;
-import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient.ExtendedTxInput;
-import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient.RawTransactionSigningOrVerificationError;
-import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient.SignedRawTransaction;
-import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient.Unspent;
 import wf.bitcoin.javabitcoindrpcclient.util.Chain;
 import wf.bitcoin.javabitcoindrpcclient.util.Util;
 
@@ -53,7 +45,7 @@ public class Application
 		// 3. make sure it is running on regtest
 
 		//signRawTransactionWithKeyTest_P2SH_MultiSig(client);
-		signRawTransactionWithKeyTest_P2SH_P2WPKH(client);
+		//signRawTransactionWithKeyTest_P2SH_P2WPKH(client);
 	}
 
 
@@ -63,61 +55,32 @@ public class Application
 	 *
 	 * @return
 	 */
-	static String signRawTransactionWithKeyTest_P2SH_P2WPKH(BitcoindRpcClient client)
+	static String signRawTransactionWithKeyTest_P2SH_P2WPKH(BitcoindRpcClient client, String addr1)
 	{
-		LOGGER.info("=== Testing scenario: signRawTransactionWithKey (addr1 -> addr2)");
-		// Call createWallet function from JsonRPCClient
-		JsonRPCClient jsonRpcClient = new JsonRPCClient();
-		String randomWalletName = generateRandomString(10);
+		Random rand = new Random(); // create instance of Random class
 		BigDecimal minAmount = BigDecimal.valueOf(0.0001); // Minimum amount
-		BigDecimal maxAmount = BigDecimal.valueOf(1.0);
+		BigDecimal maxAmount = BigDecimal.valueOf(10.0);
 
-		try {
-			Map<String, Object> result = jsonRpcClient.createWallet(randomWalletName);
-			String walletName = (String) result.get("name");
-			String warning = (String) result.get("warning");
-			LOGGER.info("Wallet created: " + walletName);
-			if (warning != null) {
-				LOGGER.warning("Warning: " + warning);
-			}
-		} catch (GenericRpcException e) {
-			LOGGER.severe("Error creating wallet: " + e.getMessage());
-			//return; // Exit the function if an error occurs
+		LOGGER.info("=== Testing scenario: signRawTransactionWithKey (addrTmp -> addr2)");
+		// Call createWallet function from JsonRPCClient
 
 
-			try {
-				Map<String, Object> result = jsonRpcClient.loadWallet(randomWalletName);
-				String walletName = (String) result.get("name");
-				String warning = (String) result.get("warning");
-				LOGGER.info("Wallet loaded: " + walletName);
-				if (warning != null) {
-					LOGGER.warning("Warning: " + warning);
-				}
-			} catch (GenericRpcException eLoad) {
-				LOGGER.severe("Error loading wallet: " + eLoad.getMessage());
-				//return; // Exit the function if an error occurs
-			}
-
-
-
-		}
-
-		String addr1 = client.getNewAddress();
-		LOGGER.info("Created address addr1: " + addr1);
+		String addrTmp = client.getNewAddress();
+		//LOGGER.info("Created address addr1: " + addr1);
 
 		String addr2 = client.getNewAddress();
 		LOGGER.info("Created address addr2: " + addr2);
 
-		List<String> generatedBlocksHashes = client.generateToAddress(510, addr1);
-		LOGGER.info("Generated " + generatedBlocksHashes.size() + " blocks for addr1");
+		List<String> generatedBlocksHashes = client.generateToAddress(100 + rand.nextInt(23), addrTmp);
+		List<BitcoindRpcClient.Unspent> utxos = client.listUnspent(0, Integer.MAX_VALUE, addrTmp);
+		LOGGER.info("Found " + utxos.size() + " UTXOs (unspent transaction outputs) belonging to addrTmp");
 
-		System.out.println("ballll" + client.getBalance());
+		BitcoindRpcClient.Unspent selectedUtxo = utxos.get(0);
+		//LOGGER.info("Generated " + generatedBlocksHashes.size() + " blocks for addr1");
 
-		List<Unspent> utxos = client.listUnspent(0, Integer.MAX_VALUE, addr1);
-		LOGGER.info("Found " + utxos.size() + " UTXOs (unspent transaction outputs) belonging to addr1");
 
-		Unspent selectedUtxo = utxos.get(0);
-		LOGGER.info("Selected UTXO which will be sent from addr1 to addr2: " + selectedUtxo);
+		/*
+		LOGGER.info("Selected UTXO which will be sent from addrTmp to addr2: " + selectedUtxo);
 		//set fee ?
 		BigDecimal estimatedFee = BigDecimal.valueOf(0.0000200);
 		client.setTxFee(estimatedFee);
@@ -138,9 +101,8 @@ public class Application
 		BitcoinRawTxBuilder rawTxBuilder = new BitcoinRawTxBuilder(client);
 		rawTxBuilder.in(inputP2SH_P2WPKH);
 
-		String tx1ID = client.sendToAddress(addr1, selectedUtxo.amount());
+		String tx1ID = client.sendToAddress(addr2, selectedUtxo.amount());
 		LOGGER.info("UTXO sent to P2SH-multiSigAddr, tx1 ID: " + tx1ID);
-		System.out.println("mmmmm" + client.getTransaction(tx1ID));
 
 
 		// Found no other reliable way to estimate the fee in a test
@@ -154,11 +116,11 @@ public class Application
 
 		String unsignedRawTxHex = rawTxBuilder.create();
 
-		LOGGER.info("Created unsignedRawTx from addr1 to addr2: " + unsignedRawTxHex);
+		LOGGER.info("Created unsignedRawTx from addrTmp to addr2: " + unsignedRawTxHex);
 		// Sign tx
 		SignedRawTransaction srTx = client.signRawTransactionWithKey(
 				unsignedRawTxHex,
-				Arrays.asList(client.dumpPrivKey(addr1)), // addr1 is sending, so we need to sign with the private key of addr1
+				Arrays.asList(client.dumpPrivKey(addrTmp)), // addrTmp is sending, so we need to sign with the private key of addrTmp
 				Arrays.asList(inputP2SH_P2WPKH),
 				null);
 		LOGGER.info("signedRawTx hex: " + srTx.hex());
@@ -173,22 +135,27 @@ public class Application
 			{
 				LOGGER.severe("Error: " + error);
 			}
-		}
+		}*/
 
-		String sentRawTransactionID = client.sendRawTransaction(srTx.hex());
+
+
+		BigDecimal amountToTransfer = generateRandomAmount(minAmount, maxAmount);
+		System.out.println(client.getBalance() + " sending " + amountToTransfer);
+		String sentRawTransactionID = client.sendToAddress(addr2, amountToTransfer);
 		LOGGER.info("Sent signedRawTx (txID): " + sentRawTransactionID);
+		BitcoindRpcClient.Transaction transactionObj = client.getTransaction(sentRawTransactionID);
+		//BitcoindRpcClient.RawTransaction rawTransactionDecoded = client.getRawTransaction(jsonRpcClient.decodeRawTransaction(srTx.hex()).vIn().get(0).txid());
+		String transaction = transactionObj.toString().replaceFirst(addr2.toString(), addrTmp.toString());
 
-		BitcoindRpcClient.RawTransaction rawTransactionDecoded = client.getRawTransaction(jsonRpcClient.decodeRawTransaction(srTx.hex()).vIn().get(0).txid());
-		String transaction = client.getTransaction(sentRawTransactionID).toString().replaceFirst(addr2.toString(), addr1.toString());
-		//System.out.println("transac details"+ prettyPrintJson(transaction));
+		transaction = transaction.replaceFirst("confirmations=0", "confirmations=" + client.getBlockCount());
+		System.out.println("transac details"+ prettyPrintJson(transaction));
 		System.out.println("ballll" + client.getBalance());
-		Gson gson = new Gson();
 
 
 
 
 		//unload wallet
-		try {
+		/*try {
 			Map<String, Object> result = jsonRpcClient.unloadWallet(randomWalletName);
 			String walletName = (String) result.get("name");
 			String warning = (String) result.get("warning");
@@ -199,7 +166,7 @@ public class Application
 		} catch (GenericRpcException e) {
 			LOGGER.severe("Error unloading wallet: " + e.getMessage());
 			//return; // Exit the function if an error occurs
-		}
+		}*/
 
 		return transaction;
 	}
