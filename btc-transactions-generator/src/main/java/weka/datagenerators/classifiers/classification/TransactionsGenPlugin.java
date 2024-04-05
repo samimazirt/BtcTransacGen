@@ -1,7 +1,6 @@
-package com.BitcoinTransacGen;
+package weka.datagenerators.classifiers.classification;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.util.*;
 
 import com.google.gson.*;
@@ -30,21 +29,6 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
      * the number of transactions to generate
      */
     protected int m_NumTransactions;
-
-    /**
-     * the transaction fees
-     */
-    protected double[] m_transactionFees;
-
-    /**
-     * the transaction sizes
-     */
-    protected double[] m_transactionSizes;
-
-    private static Attribute senderAddress;
-    private static Attribute recipientAddress;
-    private static Attribute amount;
-    private static Attribute transactionFee;
 
 
     /**
@@ -189,7 +173,7 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
      * @return the default number of attributes
      */
     protected int defaultNumAttributes() {
-        return 25; // We'll have two attributes: transaction fee and transaction size
+        return 25;
     }
 
     /**
@@ -537,7 +521,7 @@ public class TransactionsGenPlugin extends ClassificationGenerator {
     }
 
     /**
-     * com.BitcoinTransacGen.Main method for executing this class.
+     * weka.datagenerators.classifiers.classification.Main method for executing this class.
      *
      * @param args should contain arguments for the data producer:
      *             -o <output_file.arff>: specify the output ARFF file name

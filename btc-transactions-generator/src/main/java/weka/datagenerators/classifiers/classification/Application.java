@@ -1,4 +1,4 @@
-package com.BitcoinTransacGen;
+package weka.datagenerators.classifiers.classification;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -9,10 +9,6 @@ import java.util.logging.Logger;
 import wf.bitcoin.javabitcoindrpcclient.*;
 import wf.bitcoin.javabitcoindrpcclient.util.Chain;
 import wf.bitcoin.javabitcoindrpcclient.util.Util;
-
-interface test extends BitcoindRpcClient {
-	Map<String, Object> createWallet(String walletName) throws GenericRpcException;
-}
 
 class JsonRPCClient extends BitcoinJSONRPCClient {
 	public Map<String, Object> createWallet(String name) throws GenericRpcException {
