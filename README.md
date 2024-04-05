@@ -33,7 +33,7 @@ Keep the output
 
 replace rpcuser, rpcpassword and rpcauth with the output values of the previous step.
 
-Run: bitcoind -regtest -conf=<Path/To/bitcoin.conf>
+Run: bitcoind -fallbackfee=0.0002 -conf=<Path/To/bitcoin.conf>
 
 Then run application.java.
 
