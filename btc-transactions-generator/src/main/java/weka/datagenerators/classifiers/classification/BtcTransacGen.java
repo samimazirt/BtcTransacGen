@@ -1,10 +1,12 @@
 package weka.datagenerators.classifiers.classification;
 
+import java.io.File;
 import java.util.*;
 import java.util.logging.Logger;
 
 import com.google.gson.*;
 import weka.core.*;
+import weka.core.converters.ArffSaver;
 import weka.datagenerators.ClassificationGenerator;
 import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
@@ -96,7 +98,7 @@ public class BtcTransacGen extends ClassificationGenerator {
      */
     @Override
     public boolean getSingleModeFlag() throws Exception {
-        return true;
+        return false;
     }
 
     /**
@@ -210,7 +212,7 @@ public class BtcTransacGen extends ClassificationGenerator {
      * @return the default number of transactions
      */
     protected int defaultNumTransactions() {
-        return 100; // Default number of transactions
+        return 5; // Default number of transactions
     }
 
     /**
@@ -488,6 +490,14 @@ public class BtcTransacGen extends ClassificationGenerator {
             //return; // Exit the function if an error occurs
         }
 
+        /*ArffSaver saver = new ArffSaver();
+        saver.setInstances(dataset);
+        saver.setFile(new File("transactions.arff"));
+        saver.writeBatch();
+
+        System.out.println("Dataset saved to transactions.arff");*/
+
+
         return dataset;
     }
 
@@ -631,9 +641,9 @@ public class BtcTransacGen extends ClassificationGenerator {
 
         LOGGER.info("here");
         System.out.println("HEEEEERRRREEe");
-        weka.core.logging.Logger.log(weka.core.logging.Logger.Level.INFO,
-                "ooooooooooooooooooo");
+        //weka.core.logging.Logger.log(weka.core.logging.Logger.Level.INFO,"ooooooooooooooooooo");
         //TransactionsGenPlugin generator = new TransactionsGenPlugin();
+
         runDataGenerator(new BtcTransacGen(), args);
         /*try {
             generator.optionsParser(args);

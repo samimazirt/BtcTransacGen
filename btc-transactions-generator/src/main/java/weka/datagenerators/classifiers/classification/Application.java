@@ -67,7 +67,7 @@ public class Application extends Thread
 		String addr2 = client.getNewAddress();
 		LOGGER.info("Created address addr2: " + addr2);
 
-		List<String> generatedBlocksHashes = client.generateToAddress(100 + rand.nextInt(23), addrTmp);
+		List<String> generatedBlocksHashes = client.generateToAddress(100 + rand.nextInt(1,23), addrTmp);
 		List<BitcoindRpcClient.Unspent> utxos = client.listUnspent(0, Integer.MAX_VALUE, addrTmp);
 		LOGGER.info("Found " + utxos.size() + " UTXOs (unspent transaction outputs) belonging to addrTmp");
 
