@@ -10,7 +10,7 @@ This guide provides step-by-step instructions for setting up and running the App
 
 2. **Configure Bitcoin Core**
 
-   Create a `bitcoin.conf` file in the root directory of your Bitcoin Core installation and populate it with the following settings:
+   Create a `bitcoin.conf` file in a directory `.bitoin/` located in `C:\Users\<user>` or in root for unix systems and populate it with the following settings:
 
    ```plaintext
    # Maintain a full transaction index, used by the getrawtransaction call
