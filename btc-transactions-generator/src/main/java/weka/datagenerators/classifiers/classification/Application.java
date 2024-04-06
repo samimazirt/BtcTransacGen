@@ -24,11 +24,11 @@ class JsonRPCClient extends BitcoinJSONRPCClient {
 	}
 }
 
-public class Application
+public class Application extends Thread
 {
 	static final Logger LOGGER = Logger.getLogger(Application.class.getName());
 
-	public static void main(String[] args) throws Exception
+	/*public static void main(String[] args) throws Exception
 	{
 		System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
 
@@ -42,7 +42,7 @@ public class Application
 
 		//signRawTransactionWithKeyTest_P2SH_MultiSig(client);
 		//signRawTransactionWithKeyTest_P2SH_P2WPKH(client);
-	}
+	}*/
 
 
 
