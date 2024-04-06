@@ -64,7 +64,7 @@ mvn compile
 Execute the application with Maven, specifying the main class and the arguments for the output file name and the number of transactions:
 
 ```shell
-mvn exec:java -Dexec.mainClass="com.BitcoinTransacGen.TransactionsGenPlugin" -Dexec.args="-o test.arff -n 3"
+mvn exec:java -Dexec.mainClass="weka.datagenerators.classifiers.classification.BtcTransacGen" -Dexec.args="-n 3"
 ```
 
 ### Packaging for WEKA
