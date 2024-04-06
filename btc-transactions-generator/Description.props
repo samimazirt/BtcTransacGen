@@ -29,7 +29,7 @@ License=GPL 2.0|Mozilla
 Description=BtcTransacGen is a bitcoin transactions data generator.
 
 # Package URL for obtaining the package archive (required)
-PackageURL=http://somewhere.net/weka/funkyPackage.zip?download
+PackageURL=http://somewhere.net/weka/btctransacgen.zip?download
 
 # URL for further information
 URL=https://gitlab.cri.epita.fr/sami.mazirt/prfe_btctransactionsgenerator

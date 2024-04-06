@@ -1,9 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="btc-transactions-generator:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/btc_transactions_generator_jar</output-path>
-    <root id="archive" name="btc-transactions-generator.jar">
-      <element id="module-output" name="btc-transactions-generator" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../../../Program Files/Weka-3-8-6/weka.jar" path-in-jar="/" />
-    </root>
-  </artifact>
-</component>
