@@ -1,54 +1,98 @@
-SHAREPOINT: https://epitafr-my.sharepoint.com/:f:/g/personal/sami_mazirt_epita_fr/EsYjAgviGqtDre3e60KQ43YBDUjcxrIrJCpQZsS9sKOq6g?e=2LkcnF
+# Application Setup and Execution Guide
 
-To run Application:
+This guide provides step-by-step instructions for setting up and running the Application in conjunction with Bitcoin Core in `regtest` mode.
 
-Download bitcoin core exe
-add a bitcoin.conf file at the root of <user>
-"""
+## Setting Up Bitcoin Core
 
-# Maintain full transaction index, used in lookups by the getrawtransaction call
-txindex=1
+1. **Download and Install Bitcoin Core**
 
-# Run bitcoind in regtest mode
-regtest=1
+   Download the `bitcoind` and `bitcoin-cli` executables from the [official Bitcoin Core website](https://bitcoin.org/en/download) suitable for your operating system.
 
-# Accept command line and JSON-RPC commands
-server=1
+2. **Configure Bitcoin Core**
 
-# Tells bitcoind that the RPC API settings on the following lines apply to the regtest RPC API
-[regtest]
+   Create a `bitcoin.conf` file in the root directory of your Bitcoin Core installation and populate it with the following settings:
 
-# RPC API settings
-rpcconnect=localhost
-rpcport=9997
-rpcuser=<user>
-rpcpassword=<password>
-#rpcauth=<value>
+   ```plaintext
+   # Maintain a full transaction index, used by the getrawtransaction call
+   txindex=1
 
-""
+   # Run bitcoind in regtest mode
+   regtest=1
 
-Where you installed bitcoin core there should be a path: <unpacked_folder>/share/rpcauth
-Run: <unpacked_folder>/share/rpcauth/rpcauth.py <YOUR_USERNAME>
-Keep the output
+   # Accept command line and JSON-RPC commands
+   server=1
 
-replace rpcuser, rpcpassword and rpcauth with the output values of the previous step.
+   # RPC API settings for regtest mode
+   [regtest]
+   rpcconnect=localhost
+   rpcport=9997
+   rpcuser=
+   rpcpassword=
+   # Optional: rpcauth=
+   ```
 
-Run: bitcoind -fallbackfee=0.0002 -conf=<Path/To/bitcoin.conf>
+3. **Generate RPC Credentials**
 
-Then run application.java.
+   Generate new RPC credentials using the `rpcauth.py` script located in `<unpacked_folder>/share/rpcauth`. Replace `<YOUR_USERNAME>` with your desired username:
 
+   ```shell
+   <unpacked_folder>/share/rpcauth/rpcauth.py <YOUR_USERNAME>
+   ```
 
-need to run from command line:
+   Note the output and use it to replace the placeholders in `bitcoin.conf` for `rpcuser`, `rpcpassword`, and optionally `rpcauth`.
 
-mvn compile (you need maven)
+4. **Start Bitcoin Core**
+
+   Start `bitcoind` with the following command, adjusting the `-conf` flag to the path of your `bitcoin.conf` file:
+
+   ```shell
+   bitcoind -fallbackfee=0.0002 -conf=<Path/To/bitcoin.conf>
+   ```
+
+## Running the Application
+
+### Compilation
+
+Ensure Maven is installed on your system. Compile the project from the root directory using Maven:
+
+```shell
+mvn compile
+```
+
+### Execution
+
+Execute the application with Maven, specifying the main class and the arguments for the output file name and the number of transactions:
+
+```shell
 mvn exec:java -Dexec.mainClass="com.BitcoinTransacGen.TransactionsGenPlugin" -Dexec.args="-o test.arff -n 3"
-output name of the output file
-n number of transactions
+```
 
-To make package for weka: run mvn clean package
-Open weka, Tools, package manager, Unofficial, file/url, and select the zip file created by the previous command, should be in dist folder in the project, import and restart weka.
+### Packaging for WEKA
 
-To use: launch explorer or workbench, click generate, select BtcTransacGen, modify the parameter number of transactions and click generate (for now make sure the bitcoind server is running)
-If problem: delete the regtest folder in AppData/Roaming/Bitcoin (same for unix find the path and delete)
-relaunch the bitcoind server
-re generate
+To create a package for integration with WEKA:
+
+1. **Package the Application**
+
+   Clean and package the project with Maven:
+
+   ```shell
+   mvn clean package
+   ```
+
+   This command generates a `.zip` file in the project's `dist` folder.
+
+2. **Import the Package into WEKA**
+
+   - Open WEKA, navigate to `Tools > Package Manager > Unofficial > File/URL`.
+   - Select the `.zip` file created by the previous step, import it, and restart WEKA for the changes to take effect.
+
+### Usage in WEKA
+
+- With WEKA opened, navigate to Explorer or Workbench.
+- Click on `Generate`.
+- Select `BtcTransacGen`, adjust the number of transactions as desired, and click `Generate`.
+- **Note**: Make sure the `bitcoind` server is running before attempting to generate transactions.
+
+### Troubleshooting
+
+If you encounter any issues, consider deleting the `regtest` folder within your Bitcoin Core data directory (`AppData/Roaming/Bitcoin` on Windows, or the corresponding directory on Unix systems), then restart the `bitcoind` server and try regenerating the transactions.
