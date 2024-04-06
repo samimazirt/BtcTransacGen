@@ -44,3 +44,11 @@ mvn compile (you need maven)
 mvn exec:java -Dexec.mainClass="com.BitcoinTransacGen.TransactionsGenPlugin" -Dexec.args="-o test.arff -n 3"
 output name of the output file
 n number of transactions
+
+To make package for weka: run mvn clean package
+Open weka, Tools, package manager, Unofficial, file/url, and select the zip file created by the previous command, should be in dist folder in the project, import and restart weka.
+
+To use: launch explorer or workbench, click generate, select BtcTransacGen, modify the parameter number of transactions and click generate (for now make sure the bitcoind server is running)
+If problem: delete the regtest folder in AppData/Roaming/Bitcoin (same for unix find the path and delete)
+relaunch the bitcoind server
+re generate
