@@ -26,13 +26,13 @@ This guide provides step-by-step instructions for setting up and running the App
    [regtest]
    rpcconnect=localhost
    rpcport=9997
-   rpcuser=
-   rpcpassword=
+   rpcuser=user
+   rpcpassword=WLMClI3cZ3ghE3diSTK-ENHSenP0bnthnbYmrAg7hcM
    # Optional: rpcauth=
    ```
 
 3. **Generate RPC Credentials**
-
+   /!!!DO NOT DO THIS STEP!!!/
    Generate new RPC credentials using the `rpcauth.py` script located in `<unpacked_folder>/share/rpcauth`. Replace `<YOUR_USERNAME>` with your desired username:
 
    ```shell
@@ -40,6 +40,7 @@ This guide provides step-by-step instructions for setting up and running the App
    ```
 
    Note the output and use it to replace the placeholders in `bitcoin.conf` for `rpcuser`, `rpcpassword`, and optionally `rpcauth`.
+   /!!!DO NOT DO THIS STEP!!!/
 
 4. **Start Bitcoin Core**
 
