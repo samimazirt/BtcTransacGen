@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  bitcoin-node1:
+    build: .
+    ports:
+      - "18444:18444"
+      - "18443:18443"
+      - "9997:9997"   # RPC port for Node 1
+    volumes:
+      - ./data/node1:/root/.bitcoin
+    command: ["bitcoind", "--fallbackfee=0.0002", "-conf=/root/.bitcoin/bitcoin.conf", "-printtoconsole"]
+
+  bitcoin-node2:
+    build: .
+    ports:
+      - "18454:18444" # Make sure ports do not conflict
+      - "2223:2223"
+      - "8333:8333"   # RPC port for Node 2
+
+    volumes:
+      - ./data/node2:/root/.bitcoin
+    command: ["bitcoind", "-port=2223", "-rpcport=8333", "-conf=/root/.bitcoin/bitcoin.conf", "-printtoconsole"]
+
+volumes:
+  data:
