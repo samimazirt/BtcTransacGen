@@ -2,6 +2,15 @@
 
 This guide provides step-by-step instructions for setting up and running the Application in conjunction with Bitcoin Core in `regtest` mode.
 
+
+## NEW VERSION
+
+just install docker on your computer, navigate to the project and run `docker-compose -f ./docker/docker-compose.yml up -d`.
+Then make the package and import in weka, see section "Packaging for WEKA"
+You can then generate. When you're done just run `docker-compose -f ./docker/docker-compose.yml down`.
+
+
+
 ## Setting Up Bitcoin Core
 
 1. **Download and Install Bitcoin Core**
