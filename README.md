@@ -46,7 +46,13 @@ This guide provides step-by-step instructions for setting up and running the App
    Start `bitcoind` with the following command, adjusting the `-conf` flag to the path of your `bitcoin.conf` file:
 
    ```shell
-   bitcoind -fallbackfee=0.0002 -conf=<Path/To/bitcoin.conf>
+   bitcoind --fallbackfee=0.0002 -conf=<Path/To/bitcoin.conf>
+   ```
+
+   To launch second node, create a `data/` directory inside the `.bitoin/` directory. And run:
+
+   ```shell
+   bitcoind -port=2223 -rpcport=8333 -datadir=<Path/To/data/> -conf=<Path/To/bitcoin.conf>
    ```
 
 ## Running the Application
