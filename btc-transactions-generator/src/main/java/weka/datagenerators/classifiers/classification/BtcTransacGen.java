@@ -1,9 +1,16 @@
 package weka.datagenerators.classifiers.classification;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.Volume;
 import com.google.gson.*;
 import weka.core.*;
 import weka.core.converters.ArffSaver;
@@ -350,11 +357,10 @@ public class BtcTransacGen extends ClassificationGenerator {
     @Override
     public Instances generateExamples() throws Exception {
         System.out.println("alllooo");
-
-        Gson gson = new Gson();
-
         Instances dataset = defineDataFormat();
         dataset.setClassIndex(dataset.numAttributes() - 1); // Set class index
+
+
 
         System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
 
@@ -363,7 +369,7 @@ public class BtcTransacGen extends ClassificationGenerator {
 
         Application.LOGGER.info("running");
 
-        client.query("addnode", "localhost:2223", "add");
+        client.query("addnode", "bitcoin-node2:2223", "add");
         //client.addNode("127.0.0.1:18445", "add");
         boolean isConnected = false;
 
@@ -493,139 +499,6 @@ public class BtcTransacGen extends ClassificationGenerator {
             return dataset;
         }
     }
-
-    /*public Instances generateFromApplication() throws Exception {
-        System.out.println("alllooo");
-
-        Gson gson = new Gson();
-
-        Instances dataset = defineDataFormat();
-        dataset.setClassIndex(dataset.numAttributes() - 1); // Set class index
-
-        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
-
-        BitcoinJSONRPCClient client = new BitcoinJSONRPCClient();
-        Util.ensureRunningOnChain(Chain.REGTEST, client);
-
-        Application.LOGGER.info("running");
-
-
-        JsonRPCClient jsonRpcClient = new JsonRPCClient();
-        String randomWalletName = Application.generateRandomString(10);
-
-
-
-        try {
-            Map<String, Object> result = jsonRpcClient.createWallet(randomWalletName);
-            String walletName = (String) result.get("name");
-            String warning = (String) result.get("warning");
-            Application.LOGGER.info("Wallet created: " + walletName);
-            if (warning != null) {
-                Application.LOGGER.warning("Warning: " + warning);
-            }
-        } catch (GenericRpcException e) {
-            Application.LOGGER.severe("Error creating wallet: " + e.getMessage());
-            //return; // Exit the function if an error occurs
-
-
-            try {
-                Map<String, Object> result = jsonRpcClient.loadWallet(randomWalletName);
-                String walletName = (String) result.get("name");
-                String warning = (String) result.get("warning");
-                Application.LOGGER.info("Wallet loaded: " + walletName);
-                if (warning != null) {
-                    Application.LOGGER.warning("Warning: " + warning);
-                }
-            } catch (GenericRpcException eLoad) {
-                Application.LOGGER.severe("Error loading wallet: " + eLoad.getMessage());
-                //return; // Exit the function if an error occurs
-            }
-
-
-
-        }
-
-        String addr1 = client.getNewAddress();
-        List<String> generatedBlocksHashes = client.generateToAddress(510, addr1);
-
-        System.out.println("YEEEESSSS" + jsonRpcClient.getBalance());
-
-
-
-
-
-        for (int i = 0; i < getNumTransactions(); i++) {
-            Instance instance = new DenseInstance(dataset.numAttributes()); // Generate instance using superclass method
-
-            // Associate the instance with the dataset
-            instance.setDataset(dataset);
-
-            String transaction = Application.signRawTransactionWithKeyTest_P2SH_P2WPKH(client, addr1);
-            String preprocessedTransaction = transaction.replaceAll("label=,", "label=empty,");
-            JsonObject transactionObject = new JsonObject();
-            System.out.println("gggggggggg "+ transactionObject);
-            try {
-                transactionObject = gson.fromJson(preprocessedTransaction, JsonObject.class);
-                // Process the transactionObject
-            } catch (JsonSyntaxException e) {
-                // Handle the JSON parsing error
-                e.printStackTrace(); // Print the stack trace for debugging
-                // Handle the error gracefully, e.g., log it or display a friendly error message
-            }
-
-            // Set values from transactionObject to respective attributes
-            instance.setValue(dataset.attribute("fee"), transactionObject.get("fee").getAsDouble());
-            instance.setValue(dataset.attribute("confirmations"), transactionObject.get("confirmations").getAsInt());
-            instance.setValue(dataset.attribute("trusted"), String.valueOf(transactionObject.get("trusted").getAsBoolean()));
-            instance.setValue(dataset.attribute("txid"), transactionObject.get("txid").getAsString());
-            instance.setValue(dataset.attribute("wtxid"), transactionObject.get("wtxid").getAsString());
-            instance.setValue(dataset.attribute("time"), transactionObject.get("time").getAsLong());
-            instance.setValue(dataset.attribute("timereceived"), transactionObject.get("timereceived").getAsLong());
-            instance.setValue(dataset.attribute("bip125_replaceable"), transactionObject.get("bip125-replaceable").getAsString());
-            instance.setValue(dataset.attribute("hex"), transactionObject.get("hex").getAsString());
-
-            JsonArray detailsArray = transactionObject.getAsJsonArray("details");
-
-            for (int j = 0; j < detailsArray.size(); j++) {
-                JsonObject detailObject = detailsArray.get(j).getAsJsonObject();
-
-                // Now you can use `i` as the index
-                // Set values for details array attributes
-                instance.setValue(dataset.attribute("fee" + (j + 1)), detailObject.get("fee").getAsDouble());
-                instance.setValue(dataset.attribute("abandoned" + (j + 1)), String.valueOf(detailObject.get("abandoned").getAsBoolean()));
-                instance.setValue(dataset.attribute("address" + (j + 1)), detailObject.get("address").getAsString());
-                instance.setValue(dataset.attribute("category" + (j + 1)), detailObject.get("category").getAsString());
-                instance.setValue(dataset.attribute("amount" + (j + 1)), detailObject.get("amount").getAsDouble());
-                instance.setValue(dataset.attribute("vout" + (j + 1)), detailObject.get("vout").getAsInt());
-
-            }
-
-            // Generate random transaction fee, size, sender address, and receiver address
-
-            dataset.add(instance);
-        }
-
-        try {
-            Map<String, Object> result = jsonRpcClient.unloadWallet(randomWalletName);
-            String warning = (String) result.get("warning");
-            Application.LOGGER.info("Wallet unloaded: " + randomWalletName);
-            if (warning != null) {
-                Application.LOGGER.warning("Warning: " + warning);
-            }
-        } catch (GenericRpcException e) {
-            Application.LOGGER.severe("Error unloading wallet: " + e.getMessage());
-            //return; // Exit the function if an error occurs
-        }
-
-        return dataset;
-    }
-
-    /**
-     * weka.datagenerators.classifiers.classification.Main method for executing this class.
-     *
-     * @param args should contain arguments for the data producer:
-     *             -b <num_transactions>: specify the number of transactions to generate
-     */
     public static void main(String[] args) {
 
         LOGGER.info("here");
