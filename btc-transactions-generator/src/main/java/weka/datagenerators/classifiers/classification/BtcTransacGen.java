@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -12,12 +13,15 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import com.google.gson.*;
+import org.aeonbits.owner.ConfigCache;
 import weka.core.*;
 import weka.core.converters.ArffSaver;
 import weka.datagenerators.ClassificationGenerator;
 import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
 import wf.bitcoin.javabitcoindrpcclient.GenericRpcException;
+import wf.bitcoin.javabitcoindrpcclient.config.RpcClientConfig;
+import wf.bitcoin.javabitcoindrpcclient.config.RpcClientConfigI;
 import wf.bitcoin.javabitcoindrpcclient.util.Chain;
 import wf.bitcoin.javabitcoindrpcclient.util.Util;
 
@@ -360,16 +364,15 @@ public class BtcTransacGen extends ClassificationGenerator {
         Instances dataset = defineDataFormat();
         dataset.setClassIndex(dataset.numAttributes() - 1); // Set class index
 
-
-
         System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
+        URL url = new URL("http://user:WLMClI3cZ3ghE3diSTK-ENHSenP0bnthnbYmrAg7hcM@localhost:9997");
 
-        BitcoinJSONRPCClient client = new BitcoinJSONRPCClient();
+        BitcoinJSONRPCClient client = new BitcoinJSONRPCClient(url);
         Util.ensureRunningOnChain(Chain.REGTEST, client);
 
         Application.LOGGER.info("running");
 
-        client.query("addnode", "bitcoin-node2:2223", "add");
+        System.out.println(client.query("addnode", "bitcoin-node2:2223", "add"));
         //client.addNode("127.0.0.1:18445", "add");
         boolean isConnected = false;
 
@@ -492,6 +495,7 @@ public class BtcTransacGen extends ClassificationGenerator {
                 Application.LOGGER.severe("Error unloading wallet: " + e.getMessage());
                 //return; // Exit the function if an error occurs
             }
+            System.out.println(client.query("addnode", "bitcoin-node2:2223", "remove"));
 
             return dataset;
         } else {

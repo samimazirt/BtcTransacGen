@@ -25,4 +25,4 @@ COPY root/.bitcoin/bitcoin.conf /root/.bitcoin/bitcoin.conf
 EXPOSE 18444
 
 # Run bitcoind by default
-CMD ["bitcoind", "-regtest"]
+#CMD ["bitcoind", "-regtest"]
