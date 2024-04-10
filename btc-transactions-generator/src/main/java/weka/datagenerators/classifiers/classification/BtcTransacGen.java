@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Logger;
@@ -363,7 +364,8 @@ public class BtcTransacGen extends ClassificationGenerator {
         System.out.println("alllooo");
         Instances dataset = defineDataFormat();
         dataset.setClassIndex(dataset.numAttributes() - 1); // Set class index
-
+        DockerBtcTransacGen.dockerMain("smazdat/btctransacgen:latest");
+        Thread.sleep(1000);
         System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
         URL url = new URL("http://user:WLMClI3cZ3ghE3diSTK-ENHSenP0bnthnbYmrAg7hcM@localhost:9997");
 
@@ -371,8 +373,10 @@ public class BtcTransacGen extends ClassificationGenerator {
         Util.ensureRunningOnChain(Chain.REGTEST, client);
 
         Application.LOGGER.info("running");
-
-        System.out.println(client.query("addnode", "bitcoin-node2:2223", "add"));
+        DockerClient dockerClient = DockerBtcTransacGen.getDockerClient();
+        String ipAddress = DockerBtcTransacGen.dockerInspectIP("docker-bitcoin-node2-1", dockerClient);
+        InetAddress address = InetAddress.getByName(ipAddress);
+        System.out.println(client.query("addnode", address.toString().replace("/", "") + ":2223", "add"));
         //client.addNode("127.0.0.1:18445", "add");
         boolean isConnected = false;
 
@@ -447,7 +451,7 @@ public class BtcTransacGen extends ClassificationGenerator {
 
                 JsonObject transaction = Application.signRawTransactionWithKeyTest_P2SH_P2WPKH(client, addr1);
 
-                System.out.println("gggggggggg " + transaction);
+                System.out.println("gggggggggg " + Application.prettyPrintJson(transaction.toString()));
 
                 // Set values from transactionObject to respective attributes
                 instance.setValue(dataset.attribute("fee"), transaction.get("fee").getAsDouble());
@@ -495,7 +499,11 @@ public class BtcTransacGen extends ClassificationGenerator {
                 Application.LOGGER.severe("Error unloading wallet: " + e.getMessage());
                 //return; // Exit the function if an error occurs
             }
-            System.out.println(client.query("addnode", "bitcoin-node2:2223", "remove"));
+            System.out.println(client.query("addnode", address.toString().replace("/", "") + ":2223", "remove"));
+            DockerBtcTransacGen.dockerStop("docker-bitcoin-node1-1", dockerClient);
+            DockerBtcTransacGen.dockerRm("docker-bitcoin-node1-1", dockerClient);
+            DockerBtcTransacGen.dockerStop("docker-bitcoin-node2-1", dockerClient);
+            DockerBtcTransacGen.dockerRm("docker-bitcoin-node2-1", dockerClient);
 
             return dataset;
         } else {

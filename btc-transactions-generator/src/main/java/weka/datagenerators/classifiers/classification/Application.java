@@ -1,14 +1,19 @@
 package weka.datagenerators.classifiers.classification;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 import com.google.gson.*;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback.Adapter;
+import com.github.dockerjava.api.model.Frame;
 
 import wf.bitcoin.javabitcoindrpcclient.*;
 
@@ -46,63 +51,6 @@ class JsonRPCClient extends BitcoinJSONRPCClient {
 public class Application extends Thread {
     static final Logger LOGGER = Logger.getLogger(Application.class.getName());
 
-	/*public static void main(String[] args) throws Exception
-	{
-		System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
-
-		BitcoinJSONRPCClient client = new BitcoinJSONRPCClient();
-		Util.ensureRunningOnChain(Chain.REGTEST, client);
-		//Thread.sleep(5000);
-		client.query("addnode", "localhost:2223", "add");
-		//client.addNode("127.0.0.1:18445", "add");
-		boolean isConnected = false;
-
-// Loop until the node is connected or a timeout occurs
-		long startTime = System.currentTimeMillis();
-		long timeout = 30000; // 30 seconds timeout
-		while (!isConnected && (System.currentTimeMillis() - startTime) < timeout) {
-			// Fetch the added node info
-			Object nodesInfo = client.query("getaddednodeinfo");
-			System.out.println(nodesInfo);
-			if (nodesInfo.toString().contains("true")) {
-				isConnected = true;
-				break;
-			}
-			// Check if connected, otherwise wait a bit before trying again
-			if (!isConnected) {
-				try {
-					Thread.sleep(1000); // Wait for 1 second
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new RuntimeException("Waiting for node connection was interrupted", e);
-				}
-			}
-		}
-
-		if (isConnected) {
-			LOGGER.info("hello");
-			URL url = new URL("http://user:WLMClI3cZ3ghE3diSTK-ENHSenP0bnthnbYmrAg7hcM@127.0.0.1:8333/");
-
-			// Create a client instance
-			BitcoinJSONRPCClient bitcoinClient = new BitcoinJSONRPCClient(url);
-			System.out.println("aaaaa " + client.getNetworkInfo());
-			System.out.println("eeeee " + bitcoinClient.getNetworkInfo());
-		} else {
-			System.out.println("Timeout: Node did not connect within the expected time.");
-		}
-
-		//jsonRpcClient.secondNode();
-
-		// Before you run the examples:
-		// 1. make sure you have an empty regtest chain (e.g. delete the regtest folder in the bitcoin data path)
-		// 2. make sure the bitcoin client is running
-		// 3. make sure it is running on regtest
-
-		//signRawTransactionWithKeyTest_P2SH_MultiSig(client);
-		//signRawTransactionWithKeyTest_P2SH_P2WPKH(client);
-	}*/
-
-
     /**
      * Signing a transaction to a P2SH-P2WPKH address (Pay-to-Witness-Public-Key-Hash)
      *
@@ -112,6 +60,8 @@ public class Application extends Thread {
         Random rand = new Random(); // create instance of Random class
         BigDecimal minAmount = BigDecimal.valueOf(0.0001); // Minimum amount
         BigDecimal maxAmount = BigDecimal.valueOf(10.0);
+        BigDecimal minFeeAmount = BigDecimal.valueOf(0.00001); // Minimum amount
+        BigDecimal maxFeeAmount = BigDecimal.valueOf(0.0004);
 
         LOGGER.info("=== Testing scenario: signRawTransactionWithKey (addrTmp -> addr2)");
         // Call createWallet function from JsonRPCClient
@@ -131,20 +81,86 @@ public class Application extends Thread {
         secondNode.createWallet(randomWalletName);
         String addr2 = bitcoinClient.getNewAddress();
         LOGGER.info("Created address addr2: " + addr2);
+        BigDecimal amountToTransfer = generateRandomAmount(minAmount, maxAmount);
 
-        List<String> generatedBlocksHashes = client.generateToAddress(100 + rand.nextInt(1, 23), addrTmp);
+        /*List<String> generatedBlocksHashes = client.generateToAddress(100 + rand.nextInt(1, 23), addrTmp);
         List<BitcoindRpcClient.Unspent> utxos = client.listUnspent(0, Integer.MAX_VALUE, addrTmp);
         LOGGER.info("Found " + utxos.size() + " UTXOs (unspent transaction outputs) belonging to addrTmp");
 
-        BigDecimal amountToTransfer = generateRandomAmount(minAmount, maxAmount);
-        System.out.println(client.getBalance() + " sending " + amountToTransfer);
-        String sentRawTransactionID = client.sendToAddress(addr2, amountToTransfer);
-        LOGGER.info("Sent signedRawTx (txID): " + sentRawTransactionID);
-        BitcoindRpcClient.Transaction transactionObj = client.getTransaction(sentRawTransactionID);
-        String transaction = transactionObj.toString().replaceFirst(addr2.toString(), addrTmp.toString());
+        BitcoindRpcClient.Unspent selectedUtxo = utxos.get(0);
 
-        transaction = transaction.replaceFirst("confirmations=0", "confirmations=" + client.getBlockCount());
-        System.out.println("transac details" + prettyPrintJson(transaction));
+        LOGGER.info("Selected UTXO which will be sent from addrTmp to addr2: " + selectedUtxo);
+        //set fee ?
+        BigDecimal estimatedFee = BigDecimal.valueOf(0.00000200);
+
+        //BigDecimal estimatedFee = client.estimateSmartFee(client.getBlockCount()).feeRate();
+        System.out.println("feeeeeeeeeeeeee" + estimatedFee);
+        client.setTxFee(estimatedFee);
+        BitcoindRpcClient.ExtendedTxInput inputP2SH_P2WPKH = new BitcoindRpcClient.ExtendedTxInput(
+                selectedUtxo.txid(),
+                selectedUtxo.vout(),
+                selectedUtxo.scriptPubKey(),
+                amountToTransfer,
+                selectedUtxo.redeemScript(),
+                selectedUtxo.witnessScript());
+        LOGGER.info("inputP2SH_P2WPKH txid: " + 			inputP2SH_P2WPKH.txid());
+        LOGGER.info("inputP2SH_P2WPKH vout: " + 			inputP2SH_P2WPKH.vout());
+        LOGGER.info("inputP2SH_P2WPKH scriptPubKey: " + 	inputP2SH_P2WPKH.scriptPubKey());
+        LOGGER.info("inputP2SH_P2WPKH redeemScript: " + 	inputP2SH_P2WPKH.redeemScript());
+        LOGGER.info("inputP2SH_P2WPKH witnessScript: " + 	inputP2SH_P2WPKH.witnessScript());
+        LOGGER.info("inputP2SH_P2WPKH amount: " + 			inputP2SH_P2WPKH.amount());
+
+        BitcoinRawTxBuilder rawTxBuilder = new BitcoinRawTxBuilder(client);
+        rawTxBuilder.in(inputP2SH_P2WPKH);
+
+        String tx1ID = client.sendToAddress(addr2, amountToTransfer);
+        LOGGER.info("UTXO sent to P2SH-multiSigAddr, tx1 ID: " + tx1ID);
+
+
+        // Found no other reliable way to estimate the fee in a test
+        // Therefore, setting the fee for this tx 200 satoshis (what appears to be the min relay fee)
+        //BigDecimal estimatedFee = BigDecimal.valueOf(0.00000200);
+        BigDecimal txToAddr2Amount = selectedUtxo.amount();//.subtract(estimatedFee);
+        rawTxBuilder.out(addr2, txToAddr2Amount);
+
+        LOGGER.info("unsignedRawTx in amount: " + selectedUtxo.amount());
+        LOGGER.info("unsignedRawTx out amount: " + txToAddr2Amount);
+
+        String unsignedRawTxHex = rawTxBuilder.create();
+
+        LOGGER.info("Created unsignedRawTx from addrTmp to addr2: " + unsignedRawTxHex);
+        // Sign tx
+        BitcoindRpcClient.SignedRawTransaction srTx = client.signRawTransactionWithKey(
+                unsignedRawTxHex,
+                Arrays.asList(client.dumpPrivKey(addrTmp)), // addrTmp is sending, so we need to sign with the private key of addrTmp
+                Arrays.asList(inputP2SH_P2WPKH),
+                null);
+        LOGGER.info("signedRawTx hex: " + srTx.hex());
+        LOGGER.info("signedRawTx complete: " + srTx.complete());
+
+        List<BitcoindRpcClient.RawTransactionSigningOrVerificationError> errors = srTx.errors();
+        if (errors != null)
+        {
+            LOGGER.severe("Found errors when signing");
+
+            for (BitcoindRpcClient.RawTransactionSigningOrVerificationError error : errors)
+            {
+                LOGGER.severe("Error: " + error);
+            }
+        }
+*/
+
+
+
+
+
+
+        //System.out.println(client.getBalance() + " sending " + amountToTransfer);
+        String sentRawTransactionID = client.sendToAddress(addr2, amountToTransfer);
+        //LOGGER.info("Sent signedRawTx (txID): " + sentRawTransactionID);
+        //String sentRawTransactionID = client.sendRawTransaction(srTx.hex());
+        BitcoindRpcClient.Transaction transactionObj = client.getTransaction(sentRawTransactionID);
+
         System.out.println("ballll" + client.getBalance());
 
         try {
@@ -161,6 +177,9 @@ public class Application extends Thread {
         Gson gson = new Gson();
 
 // Parse the transaction JSON string into a JsonObject
+        String transaction = transactionObj.toString().replaceFirst(addr2.toString(), addrTmp.toString());
+        transaction = transaction.replaceFirst("confirmations=0", "confirmations=" + client.getBlockCount());
+        //System.out.println("transac details" + prettyPrintJson(transaction));
         JsonObject transactionObject = gson.fromJson(transaction, JsonObject.class);
         transactionObject.addProperty("receiving_address", addr2);
 
@@ -179,7 +198,7 @@ public class Application extends Thread {
 
         // Define the ranges corresponding to the probabilities
         BigDecimal[] rangeMinimums = {
-                BigDecimal.valueOf(0.0001),
+                BigDecimal.valueOf(0.0005),
                 BigDecimal.valueOf(0.001),
                 BigDecimal.valueOf(0.01),
                 BigDecimal.valueOf(0.1),
@@ -209,7 +228,18 @@ public class Application extends Thread {
         return randomBigDecimal.setScale(8, BigDecimal.ROUND_HALF_UP);
     }
 
-    private static String prettyPrintJson(String jsonData) {
+    // Generates a random fee in BTC per kilobyte within a specified range, using BigDecimal for precision
+    public static BigDecimal generateRandomFeeBTC(BigDecimal minFeeBTC, BigDecimal maxFeeBTC) {
+        if (minFeeBTC.compareTo(maxFeeBTC) >= 0) {
+            throw new IllegalArgumentException("maxFeeBTC must be greater than minFeeBTC");
+        }
+        Random random = new Random();
+        BigDecimal randomBigDecimal = minFeeBTC.add(new BigDecimal(random.nextDouble()).multiply(maxFeeBTC.subtract(minFeeBTC)));
+        // Ensure the scale is set to 8 decimal places, rounding half up
+        return randomBigDecimal.setScale(8, RoundingMode.HALF_UP);
+    }
+
+    public static String prettyPrintJson(String jsonData) {
         StringBuilder prettyJson = new StringBuilder();
         int indentLevel = 0;
         boolean inQuotes = false;
@@ -247,6 +277,8 @@ public class Application extends Thread {
         }
         return prettyJson.toString();
     }
+
+
 
     public static String generateRandomString(int length) {
         // Define the characters that can be used in the random string
