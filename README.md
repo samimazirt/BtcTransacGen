@@ -5,9 +5,18 @@ This guide provides step-by-step instructions for setting up and running the App
 
 ## NEW VERSION
 
-just install docker on your computer, navigate to the project and run `docker-compose -f ./docker/docker-compose.yml up -d`.
+1. **Download and Install Bitcoin Core**
+
+   just install docker on your computer.
+    navigate to the project and run `docker-compose -f ./docker/docker-compose.yml up -d`.
+
+2. **Create necessary files**
+   `/root/AppData/Roaming/Bitcoin/bitcoin.conf` for Unix.
+   `C:\Users\<user>\AppData\Roaming\Bitcoin\bitcoin.conf`
+3. **Build the package**
+
 Then make the package and import in weka, see section "Packaging for WEKA"
-You can then generate. When you're done just run `docker-compose -f ./docker/docker-compose.yml down`.
+You can then generate.
 
 
 
