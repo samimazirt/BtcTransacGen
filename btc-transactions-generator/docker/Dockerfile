@@ -20,7 +20,7 @@ RUN wget ${BITCOIN_URL} -O bitcoin.tar.gz \
 
 # Copy the Bitcoin configuration file into the container
 COPY root/.bitcoin/bitcoin.conf /root/.bitcoin/bitcoin.conf
-
+COPY root/AppData/Roaming/Bitcoin/bitcoin.conf /root/AppData/Roaming/Bitcoin/bitcoin.conf
 ADD data/ /data/
 
 # Expose the Bitcoin daemon port

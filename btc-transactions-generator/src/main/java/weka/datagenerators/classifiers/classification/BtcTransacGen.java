@@ -365,7 +365,7 @@ public class BtcTransacGen extends ClassificationGenerator {
         Instances dataset = defineDataFormat();
         dataset.setClassIndex(dataset.numAttributes() - 1); // Set class index
         DockerBtcTransacGen.dockerMain("smazdat/btctransacgen:latest");
-        Thread.sleep(1000);
+        Thread.sleep(4000);
         System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
         URL url = new URL("http://user:WLMClI3cZ3ghE3diSTK-ENHSenP0bnthnbYmrAg7hcM@localhost:9997");
 
