@@ -46,6 +46,10 @@ public class BtcTransacGen extends ClassificationGenerator {
      */
     protected int m_NumTransactions;
 
+    /**
+     * the Duration in minutes of generation
+     */
+    protected int m_DurationMinutes;  // Duration in minutes
 
     /**
      * Initializes the generator with default values
@@ -55,6 +59,7 @@ public class BtcTransacGen extends ClassificationGenerator {
 
         setNumAttributes(defaultNumAttributes());
         setNumTransactions(defaultNumTransactions());
+        setDurationMinutes(defaultDurationMinutes());
     }
 
     /**
@@ -84,7 +89,7 @@ public class BtcTransacGen extends ClassificationGenerator {
         result.append("% Generates random Bitcoin transactions with transaction fees and sizes.\n");
         result.append("% Options:\n");
         result.append("%   -b <num_transactions>: Number of transactions to generate\n");
-        result.append("%   -o <output_file.arff>: Output ARFF file name\n");
+        result.append("%   -m <duration_minutes>: Duration of generation in minutes\n");
         result.append("%\n");
 
         return result.toString();
@@ -135,7 +140,10 @@ public class BtcTransacGen extends ClassificationGenerator {
         Vector<Option> result = enumToVector(super.listOptions());
 
         result.add(new Option("\tThe number of transactions to generate (default " + defaultNumTransactions() + ").",
-                "n", 1, "-nt <numTransactions>"));
+                "n", 1, "-b <numTransactions>"));
+
+        result.add(new Option("\tThe duration of generation (default " + defaultDurationMinutes() + ").",
+                "d", 2, "-m <durationMinutes>"));
 
         return result.elements();
     }
@@ -148,15 +156,29 @@ public class BtcTransacGen extends ClassificationGenerator {
      */
     @Override
     public void setOptions(String[] options) throws Exception {
-        String tmpStr;
-
         super.setOptions(options);
+        int index;
 
-        tmpStr = Utils.getOption('b', options);
-        if (tmpStr.length() != 0) {
-            setNumTransactions(Integer.parseInt(tmpStr));
+        for (index = 0; index < options.length; ++index)
+        {
+            System.out.println("options[" + index + "]: " + options[index]);
+        }
+
+        String numTransactionsStr = Utils.getOption('b', options);
+        System.out.println("yes "+ numTransactionsStr);
+        if (numTransactionsStr.length() != 0) {
+            setNumTransactions(Integer.parseInt(numTransactionsStr));
         } else {
             setNumTransactions(defaultNumTransactions());
+        }
+
+        String durationStr = Utils.getOption('m', options);
+        System.out.println("yes "+ durationStr);
+
+        if (durationStr.length() != 0) {
+            setDurationMinutes(Integer.parseInt(durationStr));
+        } else {
+            setDurationMinutes(defaultDurationMinutes());
         }
     }
 
@@ -176,9 +198,19 @@ public class BtcTransacGen extends ClassificationGenerator {
         for (i = 0; i < options.length; i++) {
             result.add(options[i]);
         }
+        int index;
 
+        for (index = 0; index < options.length; ++index)
+        {
+            System.out.println("options2[" + index + "]: " + options[index]);
+        }
         result.add("-b");
         result.add("" + getNumTransactions());
+
+        result.add("-m");
+        result.add("" + getDurationMinutes());
+
+        System.out.println("no " + result);
 
         return result.toArray(new String[result.size()]);
     }
@@ -230,6 +262,15 @@ public class BtcTransacGen extends ClassificationGenerator {
     }
 
     /**
+     * returns the default number of transactions
+     *
+     * @return the default number of transactions
+     */
+    protected int defaultDurationMinutes() {
+        return 5; // Default number of transactions
+    }
+
+    /**
      * Sets the number of transactions to generate.
      *
      * @param numTransactions the new number of transactions
@@ -238,6 +279,18 @@ public class BtcTransacGen extends ClassificationGenerator {
         m_NumTransactions = numTransactions;
     }
 
+    /**
+     * Sets the duration of generation.
+     *
+     * @param durationMinutes the duration of generation
+     */
+    public void setDurationMinutes(int durationMinutes) {
+        m_DurationMinutes = durationMinutes;
+    }
+
+    public String durationMinutesTipText() {
+        return "The duration in minutes for which the transaction generation process should run.";
+    }
 
     /**
      *
@@ -251,6 +304,13 @@ public class BtcTransacGen extends ClassificationGenerator {
         } else {
             setNumTransactions(defaultNumTransactions());
         }
+
+        String tm = Utils.getOption('n', options);
+        if (tm.length() != 0) {
+            setDurationMinutes(Integer.parseInt(tm));
+        } else {
+            setDurationMinutes(defaultDurationMinutes());
+        }
     }
 
     /**
@@ -260,6 +320,15 @@ public class BtcTransacGen extends ClassificationGenerator {
      */
     public int getNumTransactions() {
         return m_NumTransactions;
+    }
+
+    /**
+     * Gets the duration of generation.
+     *
+     * @return the duration of generation
+     */
+    public int getDurationMinutes() {
+        return m_DurationMinutes;
     }
 
     /**
@@ -443,9 +512,16 @@ public class BtcTransacGen extends ClassificationGenerator {
 
             System.out.println("YEEEESSSS" + jsonRpcClient.getBalance());
             //jsonRpcClient.setfee("0.00002");
+           // long startTime = System.currentTimeMillis();
+            System.out.println("duration " + getDurationMinutes());
 
+            long endTime = startTime + getDurationMinutes() * 60000;
+            System.out.println("endtime " + endTime);
 
-            for (int i = 0; i < getNumTransactions(); i++) {
+            int i = 0;
+            while (i < getNumTransactions() && System.currentTimeMillis() < endTime) {
+                System.out.println("time now " + System.currentTimeMillis());
+
                 BigDecimal minFeeAmount = BigDecimal.valueOf(0.00001); // Minimum amount
                 BigDecimal maxFeeAmount = BigDecimal.valueOf(0.0004);
                 BigDecimal fee = Application.generateRandomFeeBTC(minFeeAmount, maxFeeAmount);
@@ -492,6 +568,7 @@ public class BtcTransacGen extends ClassificationGenerator {
                 // Generate random transaction fee, size, sender address, and receiver address
 
                 dataset.add(instance);
+                i += 1;
             }
 
             try {
@@ -523,7 +600,12 @@ public class BtcTransacGen extends ClassificationGenerator {
         System.out.println("HEEEEERRRREEe");
         //weka.core.logging.Logger.log(weka.core.logging.Logger.Level.INFO,"ooooooooooooooooooo");
         //TransactionsGenPlugin generator = new TransactionsGenPlugin();
+        int index;
 
+        for (index = 0; index < args.length; ++index)
+        {
+            System.out.println("args[" + index + "]: " + args[index]);
+        }
         runDataGenerator(new BtcTransacGen(), args);
         /*try {
             generator.optionsParser(args);
