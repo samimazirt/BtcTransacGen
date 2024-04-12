@@ -27,6 +27,7 @@ import wf.bitcoin.javabitcoindrpcclient.util.Chain;
 import wf.bitcoin.javabitcoindrpcclient.util.Util;
 
 public class BtcTransacGen extends ClassificationGenerator {
+
     static final Logger LOGGER = Logger.getLogger(BtcTransacGen.class.getName());
 
     /**
@@ -407,7 +408,6 @@ public class BtcTransacGen extends ClassificationGenerator {
             JsonRPCClient jsonRpcClient = new JsonRPCClient();
             String randomWalletName = Application.generateRandomString(10);
 
-
             try {
                 Map<String, Object> result = jsonRpcClient.createWallet(randomWalletName);
                 String walletName = (String) result.get("name");
@@ -441,6 +441,7 @@ public class BtcTransacGen extends ClassificationGenerator {
             List<String> generatedBlocksHashes = client.generateToAddress(510, addr1);
 
             System.out.println("YEEEESSSS" + jsonRpcClient.getBalance());
+            //jsonRpcClient.setfee("0.00002");
 
 
             for (int i = 0; i < getNumTransactions(); i++) {

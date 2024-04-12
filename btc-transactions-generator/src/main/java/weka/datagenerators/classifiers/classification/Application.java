@@ -41,9 +41,10 @@ class JsonRPCClient extends BitcoinJSONRPCClient {
         return (Map<String, Object>) this.query("unloadwallet", name);
     }
 
-    public List<Map<String, Object>> secondNode() throws GenericRpcException {
-        return (List<Map<String, Object>>) this.query("getaddednodeinfo");
+    public Map<Boolean, Object> setfee(String fee) throws GenericRpcException {
+        return (Map<Boolean, Object>) this.query("settxfee", fee);
     }
+
 
 
 }
@@ -83,7 +84,7 @@ public class Application extends Thread {
         LOGGER.info("Created address addr2: " + addr2);
         BigDecimal amountToTransfer = generateRandomAmount(minAmount, maxAmount);
 
-        /*List<String> generatedBlocksHashes = client.generateToAddress(100 + rand.nextInt(1, 23), addrTmp);
+        List<String> generatedBlocksHashes = client.generateToAddress(100 + rand.nextInt(1, 23), addrTmp);
         List<BitcoindRpcClient.Unspent> utxos = client.listUnspent(0, Integer.MAX_VALUE, addrTmp);
         LOGGER.info("Found " + utxos.size() + " UTXOs (unspent transaction outputs) belonging to addrTmp");
 
@@ -91,11 +92,6 @@ public class Application extends Thread {
 
         LOGGER.info("Selected UTXO which will be sent from addrTmp to addr2: " + selectedUtxo);
         //set fee ?
-        BigDecimal estimatedFee = BigDecimal.valueOf(0.00000200);
-
-        //BigDecimal estimatedFee = client.estimateSmartFee(client.getBlockCount()).feeRate();
-        System.out.println("feeeeeeeeeeeeee" + estimatedFee);
-        client.setTxFee(estimatedFee);
         BitcoindRpcClient.ExtendedTxInput inputP2SH_P2WPKH = new BitcoindRpcClient.ExtendedTxInput(
                 selectedUtxo.txid(),
                 selectedUtxo.vout(),
@@ -148,7 +144,7 @@ public class Application extends Thread {
                 LOGGER.severe("Error: " + error);
             }
         }
-*/
+
 
 
 

@@ -76,6 +76,7 @@ public class DockerBtcTransacGen {
         dockerRun(dockerImage, containerName2, dockerClient, node2PortMappings);
 
         dockerExec("bitcoind --fallbackfee=0.0002 -datadir=/data/node1/ -conf=/data/node1/bitcoin.conf -printtoconsole\n", containerName1, dockerClient);
+        Thread.sleep(4000);
         dockerExec("bitcoind -port=2223 -rpcport=8333 -datadir=/data/node2/ -conf=/data/node2/bitcoin.conf -printtoconsole\n", containerName2, dockerClient);
         dockerExec("bitcoind -port=2223 -rpcport=8333 -datadir=/data/node2/ -conf=/data/node2/bitcoin.conf -printtoconsole\n", containerName2, dockerClient); // we need this line even if its duplicate, without it it doesn't work (maybe thread.sleep)
 
