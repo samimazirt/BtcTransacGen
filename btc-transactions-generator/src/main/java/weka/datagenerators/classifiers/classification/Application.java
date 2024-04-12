@@ -61,8 +61,7 @@ public class Application extends Thread {
         Random rand = new Random(); // create instance of Random class
         BigDecimal minAmount = BigDecimal.valueOf(0.0001); // Minimum amount
         BigDecimal maxAmount = BigDecimal.valueOf(10.0);
-        BigDecimal minFeeAmount = BigDecimal.valueOf(0.00001); // Minimum amount
-        BigDecimal maxFeeAmount = BigDecimal.valueOf(0.0004);
+
 
         LOGGER.info("=== Testing scenario: signRawTransactionWithKey (addrTmp -> addr2)");
         // Call createWallet function from JsonRPCClient
@@ -171,6 +170,8 @@ public class Application extends Thread {
             //return; // Exit the function if an error occurs
         }
         Gson gson = new Gson();
+
+       // BigDecimal estimatedFee = generateRandomFeeBTC(minFeeAmount, maxFeeAmount);
 
 // Parse the transaction JSON string into a JsonObject
         String transaction = transactionObj.toString().replaceFirst(addr2.toString(), addrTmp.toString());

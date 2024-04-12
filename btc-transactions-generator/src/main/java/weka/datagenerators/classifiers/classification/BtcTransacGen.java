@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
@@ -445,6 +446,10 @@ public class BtcTransacGen extends ClassificationGenerator {
 
 
             for (int i = 0; i < getNumTransactions(); i++) {
+                BigDecimal minFeeAmount = BigDecimal.valueOf(0.00001); // Minimum amount
+                BigDecimal maxFeeAmount = BigDecimal.valueOf(0.0004);
+                BigDecimal fee = Application.generateRandomFeeBTC(minFeeAmount, maxFeeAmount);
+                System.out.println("rrrrrrrrrr" + fee);
                 Instance instance = new DenseInstance(dataset.numAttributes()); // Generate instance using superclass method
 
                 // Associate the instance with the dataset
@@ -455,7 +460,7 @@ public class BtcTransacGen extends ClassificationGenerator {
                 System.out.println("gggggggggg " + Application.prettyPrintJson(transaction.toString()));
 
                 // Set values from transactionObject to respective attributes
-                instance.setValue(dataset.attribute("fee"), transaction.get("fee").getAsDouble());
+                instance.setValue(dataset.attribute("fee"), fee.doubleValue());
                 instance.setValue(dataset.attribute("confirmations"), transaction.get("confirmations").getAsInt());
                 instance.setValue(dataset.attribute("trusted"), String.valueOf(transaction.get("trusted").getAsBoolean()));
                 instance.setValue(dataset.attribute("txid"), transaction.get("txid").getAsString());
@@ -473,7 +478,7 @@ public class BtcTransacGen extends ClassificationGenerator {
 
                     // Now you can use `i` as the index
                     // Set values for details array attributes
-                    instance.setValue(dataset.attribute("fee1"), detailObject.get("fee").getAsDouble());
+                    instance.setValue(dataset.attribute("fee1"), fee.doubleValue());
                     instance.setValue(dataset.attribute("abandoned"), String.valueOf(detailObject.get("abandoned").getAsBoolean()));
                     instance.setValue(dataset.attribute("address_sender"), detailObject.get("address").getAsString());
                     instance.setValue(dataset.attribute("category"), detailObject.get("category").getAsString());
