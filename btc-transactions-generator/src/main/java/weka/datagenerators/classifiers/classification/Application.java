@@ -58,8 +58,8 @@ public class Application extends Thread {
      * @return
      */
     static JsonObject signRawTransactionWithKeyTest_P2SH_P2WPKH(BitcoinJSONRPCClient client, String addr1) throws MalformedURLException {
-        Random rand = new Random(); // create instance of Random class
-        BigDecimal minAmount = BigDecimal.valueOf(0.0001); // Minimum amount
+        Random rand = new Random();
+        BigDecimal minAmount = BigDecimal.valueOf(0.0001);
         BigDecimal maxAmount = BigDecimal.valueOf(10.0);
 
 
@@ -74,7 +74,6 @@ public class Application extends Thread {
         BitcoinJSONRPCClient bitcoinClient = new BitcoinJSONRPCClient(url);
 
         String addrTmp = client.getNewAddress();
-        //LOGGER.info("Created address addr1: " + addr1);
 
         JsonRPCClient secondNode = new JsonRPCClient(url);
         String randomWalletName = Application.generateRandomString(10);
@@ -90,7 +89,6 @@ public class Application extends Thread {
         BitcoindRpcClient.Unspent selectedUtxo = utxos.get(0);
 
         LOGGER.info("Selected UTXO which will be sent from addrTmp to addr2: " + selectedUtxo);
-        //set fee ?
         BitcoindRpcClient.ExtendedTxInput inputP2SH_P2WPKH = new BitcoindRpcClient.ExtendedTxInput(
                 selectedUtxo.txid(),
                 selectedUtxo.vout(),
@@ -111,11 +109,7 @@ public class Application extends Thread {
         String tx1ID = client.sendToAddress(addr2, amountToTransfer);
         LOGGER.info("UTXO sent to P2SH-multiSigAddr, tx1 ID: " + tx1ID);
 
-
-        // Found no other reliable way to estimate the fee in a test
-        // Therefore, setting the fee for this tx 200 satoshis (what appears to be the min relay fee)
-        //BigDecimal estimatedFee = BigDecimal.valueOf(0.00000200);
-        BigDecimal txToAddr2Amount = selectedUtxo.amount();//.subtract(estimatedFee);
+        BigDecimal txToAddr2Amount = selectedUtxo.amount();
         rawTxBuilder.out(addr2, txToAddr2Amount);
 
         LOGGER.info("unsignedRawTx in amount: " + selectedUtxo.amount());
@@ -145,18 +139,10 @@ public class Application extends Thread {
         }
 
 
-
-
-
-
-
-        //System.out.println(client.getBalance() + " sending " + amountToTransfer);
         String sentRawTransactionID = client.sendToAddress(addr2, amountToTransfer);
-        //LOGGER.info("Sent signedRawTx (txID): " + sentRawTransactionID);
-        //String sentRawTransactionID = client.sendRawTransaction(srTx.hex());
         BitcoindRpcClient.Transaction transactionObj = client.getTransaction(sentRawTransactionID);
 
-        System.out.println("ballll" + client.getBalance());
+        System.out.println("balance: " + client.getBalance());
 
         try {
             Map<String, Object> result = secondNode.unloadWallet(randomWalletName);
@@ -167,16 +153,13 @@ public class Application extends Thread {
             }
         } catch (GenericRpcException e) {
             Application.LOGGER.severe("Error unloading wallet: " + e.getMessage());
-            //return; // Exit the function if an error occurs
         }
         Gson gson = new Gson();
 
-       // BigDecimal estimatedFee = generateRandomFeeBTC(minFeeAmount, maxFeeAmount);
 
-// Parse the transaction JSON string into a JsonObject
+        // Parse the transaction JSON string into a JsonObject
         String transaction = transactionObj.toString().replaceFirst(addr2.toString(), addrTmp.toString());
         transaction = transaction.replaceFirst("confirmations=0", "confirmations=" + client.getBlockCount());
-        //System.out.println("transac details" + prettyPrintJson(transaction));
         JsonObject transactionObject = gson.fromJson(transaction, JsonObject.class);
         transactionObject.addProperty("receiving_address", addr2);
 
@@ -188,12 +171,8 @@ public class Application extends Thread {
     public static BigDecimal generateRandomAmount(BigDecimal min, BigDecimal max) {
         Random random = new Random();
 
-        // Define the distribution of transaction amounts
-        // For simplicity, you can define a distribution based on ranges and their corresponding probabilities
-        // Adjust the probabilities based on your analysis of real-world Bitcoin transaction data
         double[] rangeProbabilities = {0.1, 0.2, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02};
 
-        // Define the ranges corresponding to the probabilities
         BigDecimal[] rangeMinimums = {
                 BigDecimal.valueOf(0.0005),
                 BigDecimal.valueOf(0.001),
@@ -205,7 +184,6 @@ public class Application extends Thread {
                 BigDecimal.valueOf(10.0)
         };
 
-        // Select a range based on probabilities
         double randomNumber = random.nextDouble();
         double cumulativeProbability = 0.0;
         int selectedRangeIndex = 0;
@@ -217,7 +195,6 @@ public class Application extends Thread {
             }
         }
 
-        // Generate a random value within the selected range
         BigDecimal selectedRangeMin = rangeMinimums[selectedRangeIndex];
         BigDecimal selectedRangeMax = (selectedRangeIndex == rangeMinimums.length - 1) ? max : rangeMinimums[selectedRangeIndex + 1];
         BigDecimal randomBigDecimal = selectedRangeMin.add(new BigDecimal(random.nextDouble()).multiply(selectedRangeMax.subtract(selectedRangeMin)));
@@ -225,14 +202,12 @@ public class Application extends Thread {
         return randomBigDecimal.setScale(8, BigDecimal.ROUND_HALF_UP);
     }
 
-    // Generates a random fee in BTC per kilobyte within a specified range, using BigDecimal for precision
     public static BigDecimal generateRandomFeeBTC(BigDecimal minFeeBTC, BigDecimal maxFeeBTC) {
         if (minFeeBTC.compareTo(maxFeeBTC) >= 0) {
             throw new IllegalArgumentException("maxFeeBTC must be greater than minFeeBTC");
         }
         Random random = new Random();
         BigDecimal randomBigDecimal = minFeeBTC.add(new BigDecimal(random.nextDouble()).multiply(maxFeeBTC.subtract(minFeeBTC)));
-        // Ensure the scale is set to 8 decimal places, rounding half up
         return randomBigDecimal.setScale(8, RoundingMode.HALF_UP);
     }
 

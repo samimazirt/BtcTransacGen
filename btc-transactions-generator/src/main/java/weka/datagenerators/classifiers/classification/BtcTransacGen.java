@@ -157,15 +157,8 @@ public class BtcTransacGen extends ClassificationGenerator {
     @Override
     public void setOptions(String[] options) throws Exception {
         super.setOptions(options);
-        int index;
-
-        for (index = 0; index < options.length; ++index)
-        {
-            System.out.println("options[" + index + "]: " + options[index]);
-        }
 
         String numTransactionsStr = Utils.getOption('b', options);
-        System.out.println("yes "+ numTransactionsStr);
         if (numTransactionsStr.length() != 0) {
             setNumTransactions(Integer.parseInt(numTransactionsStr));
         } else {
@@ -173,7 +166,6 @@ public class BtcTransacGen extends ClassificationGenerator {
         }
 
         String durationStr = Utils.getOption('m', options);
-        System.out.println("yes "+ durationStr);
 
         if (durationStr.length() != 0) {
             setDurationMinutes(Integer.parseInt(durationStr));
@@ -198,19 +190,11 @@ public class BtcTransacGen extends ClassificationGenerator {
         for (i = 0; i < options.length; i++) {
             result.add(options[i]);
         }
-        int index;
-
-        for (index = 0; index < options.length; ++index)
-        {
-            System.out.println("options2[" + index + "]: " + options[index]);
-        }
         result.add("-b");
         result.add("" + getNumTransactions());
 
         result.add("-m");
         result.add("" + getDurationMinutes());
-
-        System.out.println("no " + result);
 
         return result.toArray(new String[result.size()]);
     }
@@ -357,17 +341,15 @@ public class BtcTransacGen extends ClassificationGenerator {
         Attribute amount = new Attribute("amount");
         Attribute fee = new Attribute("fee");
         Attribute confirmations = new Attribute("confirmations");
-        //Attribute trusted = new Attribute("trusted");
         Attribute txid = new Attribute("txid", (ArrayList<String>) null);
         Attribute wtxid = new Attribute("wtxid", (ArrayList<String>) null);
         Attribute time = new Attribute("time");
         Attribute timereceived = new Attribute("timereceived");
         Attribute bip125Replaceable = new Attribute("bip125_replaceable", (ArrayList<String>) null);
-        Attribute details = new Attribute("details");
         Attribute hex = new Attribute("hex", (ArrayList<String>) null);
         Attribute receiving_address = new Attribute("receiving_address", (ArrayList<String>) null);
 
-// Attributes for details array elements
+        // Attributes for details array elements
         Attribute address_sender = new Attribute("address_sender", (ArrayList<String>) null);
         Attribute category = new Attribute("category", (ArrayList<String>) null);
         Attribute amount_sent = new Attribute("amount_sent");
@@ -375,7 +357,6 @@ public class BtcTransacGen extends ClassificationGenerator {
         Attribute fee1 = new Attribute("fee1");
         Attribute abandoned = new Attribute("abandoned", trustedValues);
 
-        Attribute hexValue = new Attribute("hex_value");
 
 
         // Add all attributes to the atts list
@@ -388,7 +369,6 @@ public class BtcTransacGen extends ClassificationGenerator {
         atts.add(time);
         atts.add(timereceived);
         atts.add(bip125Replaceable);
-        atts.add(details);
         atts.add(hex);
         atts.add(receiving_address);
 
@@ -400,7 +380,6 @@ public class BtcTransacGen extends ClassificationGenerator {
         atts.add(fee1);
         atts.add(abandoned);
 
-        atts.add(hexValue);
 
 
 
@@ -432,7 +411,6 @@ public class BtcTransacGen extends ClassificationGenerator {
      */
     @Override
     public Instances generateExamples() throws Exception {
-        System.out.println("alllooo");
         Instances dataset = defineDataFormat();
         dataset.setClassIndex(dataset.numAttributes() - 1); // Set class index
         DockerBtcTransacGen.dockerMain("smazdat/btctransacgen:latest");
@@ -447,11 +425,10 @@ public class BtcTransacGen extends ClassificationGenerator {
         DockerClient dockerClient = DockerBtcTransacGen.getDockerClient();
         String ipAddress = DockerBtcTransacGen.dockerInspectIP("docker-bitcoin-node2-1", dockerClient);
         InetAddress address = InetAddress.getByName(ipAddress);
-        System.out.println(client.query("addnode", address.toString().replace("/", "") + ":2223", "add"));
-        //client.addNode("127.0.0.1:18445", "add");
+        client.query("addnode", address.toString().replace("/", "") + ":2223", "add");
         boolean isConnected = false;
 
-// Loop until the node is connected or a timeout occurs
+        // Loop until the node is connected or a timeout occurs
         long startTime = System.currentTimeMillis();
         long timeout = 30000; // 30 seconds timeout
         while (!isConnected && (System.currentTimeMillis() - startTime) < timeout) {
@@ -501,7 +478,6 @@ public class BtcTransacGen extends ClassificationGenerator {
                     }
                 } catch (GenericRpcException eLoad) {
                     Application.LOGGER.severe("Error loading wallet: " + eLoad.getMessage());
-                    //return; // Exit the function if an error occurs
                 }
 
 
@@ -510,30 +486,22 @@ public class BtcTransacGen extends ClassificationGenerator {
             String addr1 = client.getNewAddress();
             List<String> generatedBlocksHashes = client.generateToAddress(510, addr1);
 
-            System.out.println("YEEEESSSS" + jsonRpcClient.getBalance());
-            //jsonRpcClient.setfee("0.00002");
-           // long startTime = System.currentTimeMillis();
-            System.out.println("duration " + getDurationMinutes());
+            System.out.println("btc balance: " + jsonRpcClient.getBalance());
 
             long endTime = startTime + getDurationMinutes() * 60000;
-            System.out.println("endtime " + endTime);
 
             int i = 0;
             while (i < getNumTransactions() && System.currentTimeMillis() < endTime) {
-                System.out.println("time now " + System.currentTimeMillis());
-
                 BigDecimal minFeeAmount = BigDecimal.valueOf(0.00001); // Minimum amount
                 BigDecimal maxFeeAmount = BigDecimal.valueOf(0.0004);
                 BigDecimal fee = Application.generateRandomFeeBTC(minFeeAmount, maxFeeAmount);
-                System.out.println("rrrrrrrrrr" + fee);
                 Instance instance = new DenseInstance(dataset.numAttributes()); // Generate instance using superclass method
 
                 // Associate the instance with the dataset
                 instance.setDataset(dataset);
 
                 JsonObject transaction = Application.signRawTransactionWithKeyTest_P2SH_P2WPKH(client, addr1);
-
-                System.out.println("gggggggggg " + Application.prettyPrintJson(transaction.toString()));
+                System.out.println("Transaction: " + Application.prettyPrintJson(transaction.toString()));
 
                 // Set values from transactionObject to respective attributes
                 instance.setValue(dataset.attribute("fee"), fee.doubleValue());
@@ -596,34 +564,8 @@ public class BtcTransacGen extends ClassificationGenerator {
     }
     public static void main(String[] args) {
 
-        LOGGER.info("here");
-        System.out.println("HEEEEERRRREEe");
-        //weka.core.logging.Logger.log(weka.core.logging.Logger.Level.INFO,"ooooooooooooooooooo");
-        //TransactionsGenPlugin generator = new TransactionsGenPlugin();
-        int index;
-
-        for (index = 0; index < args.length; ++index)
-        {
-            System.out.println("args[" + index + "]: " + args[index]);
-        }
+        LOGGER.info("Generating transactions");
         runDataGenerator(new BtcTransacGen(), args);
-        /*try {
-            generator.optionsParser(args);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-
-        // Generate dataset
-        try {
-            Instances dataset = generator.generateFromApplication();
-            // Output dataset to ARFF file
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }*/
     }
 
 }
