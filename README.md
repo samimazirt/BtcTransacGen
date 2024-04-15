@@ -5,7 +5,7 @@ This guide provides step-by-step instructions for setting up and running the App
 
 ## NEW VERSION
 
-1. **Download and Install Bitcoin Core**
+1. **Download and Install Docker**
 
    just install docker on your computer.
 
