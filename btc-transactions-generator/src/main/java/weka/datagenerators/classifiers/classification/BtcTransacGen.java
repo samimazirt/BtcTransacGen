@@ -44,15 +44,6 @@ public class BtcTransacGen extends ClassificationGenerator {
 
     static final Logger LOGGER = Logger.getLogger(BtcTransacGen.class.getName());
 
-    /**
-     * for serialization
-     */
-    //static final long serialVersionUID = 6069033710635728720L;
-
-    /**
-     * Number of attributes the dataset should have
-     */
-    protected int m_NumAttributes;
 
     /**
      * the number of transactions to generate
@@ -70,7 +61,6 @@ public class BtcTransacGen extends ClassificationGenerator {
     public BtcTransacGen() {
         super();
 
-        setNumAttributes(defaultNumAttributes());
         setNumTransactions(defaultNumTransactions());
         setDurationMinutes(defaultDurationMinutes());
     }
@@ -213,43 +203,6 @@ public class BtcTransacGen extends ClassificationGenerator {
     }
 
     /**
-     * returns the default number of attributes
-     *
-     * @return the default number of attributes
-     */
-    protected int defaultNumAttributes() {
-        return 25;
-    }
-
-    /**
-     * Sets the number of attributes the dataset should have.
-     *
-     * @param numAttributes the new number of attributes
-     */
-    public void setNumAttributes(int numAttributes) {
-        m_NumAttributes = numAttributes;
-    }
-
-    /**
-     * Gets the number of attributes that should be produced.
-     *
-     * @return the number of attributes that should be produced
-     */
-    public int getNumAttributes() {
-        return m_NumAttributes;
-    }
-
-    /**
-     * Returns the tip text for this property
-     *
-     * @return tip text for this property suitable for displaying in the
-     * explorer/experimenter gui
-     */
-    public String numAttributesTipText() {
-        return "The number of attributes the generated data will contain.";
-    }
-
-    /**
      * returns the default number of transactions
      *
      * @return the default number of transactions
@@ -259,9 +212,9 @@ public class BtcTransacGen extends ClassificationGenerator {
     }
 
     /**
-     * returns the default number of transactions
+     * returns the default duration in minutes
      *
-     * @return the default number of transactions
+     * @return the default duration in minutes
      */
     protected int defaultDurationMinutes() {
         return 5; // Default number of transactions
