@@ -75,12 +75,9 @@ public class Application extends Thread {
         BigDecimal minAmount = BigDecimal.valueOf(0.0001);
         BigDecimal maxAmount = BigDecimal.valueOf(10.0);
 
-
-        LOGGER.info("=== Testing scenario: signRawTransactionWithKey (addrTmp -> addr2)");
         // Call createWallet function from JsonRPCClient
 
 
-        LOGGER.info("hello");
         URL url = new URL("http://user:WLMClI3cZ3ghE3diSTK-ENHSenP0bnthnbYmrAg7hcM@127.0.0.1:8333/");
 
         // Create a client instance
@@ -92,16 +89,13 @@ public class Application extends Thread {
         String randomWalletName = Application.generateRandomString(10);
         secondNode.createWallet(randomWalletName);
         String addr2 = bitcoinClient.getNewAddress();
-        LOGGER.info("Created address addr2: " + addr2);
         BigDecimal amountToTransfer = generateRandomAmount(minAmount, maxAmount);
 
         List<String> generatedBlocksHashes = client.generateToAddress(100 + rand.nextInt(1, 23), addrTmp);
         List<BitcoindRpcClient.Unspent> utxos = client.listUnspent(0, Integer.MAX_VALUE, addrTmp);
-        LOGGER.info("Found " + utxos.size() + " UTXOs (unspent transaction outputs) belonging to addrTmp");
 
         BitcoindRpcClient.Unspent selectedUtxo = utxos.get(0);
 
-        LOGGER.info("Selected UTXO which will be sent from addrTmp to addr2: " + selectedUtxo);
         BitcoindRpcClient.ExtendedTxInput inputP2SH_P2WPKH = new BitcoindRpcClient.ExtendedTxInput(
                 selectedUtxo.txid(),
                 selectedUtxo.vout(),
@@ -109,36 +103,24 @@ public class Application extends Thread {
                 amountToTransfer,
                 selectedUtxo.redeemScript(),
                 selectedUtxo.witnessScript());
-        LOGGER.info("inputP2SH_P2WPKH txid: " + 			inputP2SH_P2WPKH.txid());
-        LOGGER.info("inputP2SH_P2WPKH vout: " + 			inputP2SH_P2WPKH.vout());
-        LOGGER.info("inputP2SH_P2WPKH scriptPubKey: " + 	inputP2SH_P2WPKH.scriptPubKey());
-        LOGGER.info("inputP2SH_P2WPKH redeemScript: " + 	inputP2SH_P2WPKH.redeemScript());
-        LOGGER.info("inputP2SH_P2WPKH witnessScript: " + 	inputP2SH_P2WPKH.witnessScript());
-        LOGGER.info("inputP2SH_P2WPKH amount: " + 			inputP2SH_P2WPKH.amount());
 
         BitcoinRawTxBuilder rawTxBuilder = new BitcoinRawTxBuilder(client);
         rawTxBuilder.in(inputP2SH_P2WPKH);
 
         String tx1ID = client.sendToAddress(addr2, amountToTransfer);
-        LOGGER.info("UTXO sent to P2SH-multiSigAddr, tx1 ID: " + tx1ID);
 
         BigDecimal txToAddr2Amount = selectedUtxo.amount();
         rawTxBuilder.out(addr2, txToAddr2Amount);
 
-        LOGGER.info("unsignedRawTx in amount: " + selectedUtxo.amount());
-        LOGGER.info("unsignedRawTx out amount: " + txToAddr2Amount);
 
         String unsignedRawTxHex = rawTxBuilder.create();
 
-        LOGGER.info("Created unsignedRawTx from addrTmp to addr2: " + unsignedRawTxHex);
         // Sign tx
         BitcoindRpcClient.SignedRawTransaction srTx = client.signRawTransactionWithKey(
                 unsignedRawTxHex,
                 Arrays.asList(client.dumpPrivKey(addrTmp)), // addrTmp is sending, so we need to sign with the private key of addrTmp
                 Arrays.asList(inputP2SH_P2WPKH),
                 null);
-        LOGGER.info("signedRawTx hex: " + srTx.hex());
-        LOGGER.info("signedRawTx complete: " + srTx.complete());
 
         List<BitcoindRpcClient.RawTransactionSigningOrVerificationError> errors = srTx.errors();
         if (errors != null)
@@ -160,7 +142,6 @@ public class Application extends Thread {
         try {
             Map<String, Object> result = secondNode.unloadWallet(randomWalletName);
             String warning = (String) result.get("warning");
-            Application.LOGGER.info("Wallet unloaded: " + randomWalletName);
             if (warning != null) {
                 Application.LOGGER.warning("Warning: " + warning);
             }

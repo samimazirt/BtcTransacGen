@@ -44,6 +44,11 @@ public class BtcTransacGen extends ClassificationGenerator {
 
     static final Logger LOGGER = Logger.getLogger(BtcTransacGen.class.getName());
 
+    /**
+     * generate for durationMinutes minutes or generate numTransactions transactions
+     */
+    protected boolean m_runBasedOnTime = false; // Default is false, run based on numTransactions
+
 
     /**
      * the number of transactions to generate
@@ -123,6 +128,14 @@ public class BtcTransacGen extends ClassificationGenerator {
         return false;
     }
 
+    public void setRunBasedOnTime(boolean runontime) {
+        this.m_runBasedOnTime = runontime;
+    }
+
+    public boolean getRunBasedOnTime() {
+        return this.m_runBasedOnTime;
+    }
+
     /**
      * Returns the revision string.
      *
@@ -141,7 +154,8 @@ public class BtcTransacGen extends ClassificationGenerator {
     @Override
     public Enumeration<Option> listOptions() {
         Vector<Option> result = enumToVector(super.listOptions());
-
+        result.add(new Option("\tWhether to run based on time instead of transaction count (default: run by transaction count).",
+                "t", 0, "-t"));
         result.add(new Option("\tThe number of transactions to generate (default " + defaultNumTransactions() + ").",
                 "n", 1, "-b <numTransactions>"));
 
@@ -160,6 +174,8 @@ public class BtcTransacGen extends ClassificationGenerator {
     @Override
     public void setOptions(String[] options) throws Exception {
         super.setOptions(options);
+
+        this.setRunBasedOnTime(Utils.getFlag('t', options));
 
         String numTransactionsStr = Utils.getOption('b', options);
         if (numTransactionsStr.length() != 0) {
@@ -188,7 +204,14 @@ public class BtcTransacGen extends ClassificationGenerator {
         String[] options;
         int i;
 
+
+
         result = new Vector<String>();
+
+        if (getRunBasedOnTime()) {
+            result.add("-t");
+        }
+
         options = super.getOptions();
         for (i = 0; i < options.length; i++) {
             result.add(options[i]);
@@ -387,7 +410,6 @@ public class BtcTransacGen extends ClassificationGenerator {
         BitcoinJSONRPCClient client = new BitcoinJSONRPCClient(url);
         Util.ensureRunningOnChain(Chain.REGTEST, client);
 
-        Application.LOGGER.info("running");
         DockerClient dockerClient = DockerBtcTransacGen.getDockerClient();
         String ipAddress = DockerBtcTransacGen.dockerInspectIP("docker-bitcoin-node2-1", dockerClient);
         InetAddress address = InetAddress.getByName(ipAddress);
@@ -425,7 +447,6 @@ public class BtcTransacGen extends ClassificationGenerator {
                 Map<String, Object> result = jsonRpcClient.createWallet(randomWalletName);
                 String walletName = (String) result.get("name");
                 String warning = (String) result.get("warning");
-                Application.LOGGER.info("Wallet created: " + walletName);
                 if (warning != null) {
                     Application.LOGGER.warning("Warning: " + warning);
                 }
@@ -438,7 +459,6 @@ public class BtcTransacGen extends ClassificationGenerator {
                     Map<String, Object> result = jsonRpcClient.loadWallet(randomWalletName);
                     String walletName = (String) result.get("name");
                     String warning = (String) result.get("warning");
-                    Application.LOGGER.info("Wallet loaded: " + walletName);
                     if (warning != null) {
                         Application.LOGGER.warning("Warning: " + warning);
                     }
@@ -455,9 +475,11 @@ public class BtcTransacGen extends ClassificationGenerator {
             System.out.println("btc balance: " + jsonRpcClient.getBalance());
 
             long endTime = startTime + getDurationMinutes() * 60000;
+            int totalToGenerate = getRunBasedOnTime() ? (getDurationMinutes() * 60 / 5) : getNumTransactions(); // Assuming each transaction takes about 5 seconds, adjust as necessary
 
-            int i = 0;
-            while (i < getNumTransactions() && System.currentTimeMillis() < endTime) {
+            int estimatedTransactionsPerMinute = 8; // Estimate how many transactions you expect to generate per minute
+            int i = 0; //transaction incrementer
+            while ((getRunBasedOnTime() && System.currentTimeMillis() < endTime) || (!getRunBasedOnTime() && i < getNumTransactions())) {
                 BigDecimal minFeeAmount = BigDecimal.valueOf(0.00001); // Minimum amount
                 BigDecimal maxFeeAmount = BigDecimal.valueOf(0.0004);
                 BigDecimal fee = Application.generateRandomFeeBTC(minFeeAmount, maxFeeAmount);
@@ -467,8 +489,6 @@ public class BtcTransacGen extends ClassificationGenerator {
                 instance.setDataset(dataset);
 
                 JsonObject transaction = Application.signRawTransactionWithKeyTest_P2SH_P2WPKH(client, addr1);
-                System.out.println("Transaction: " + Application.prettyPrintJson(transaction.toString()));
-
                 // Set values from transactionObject to respective attributes
                 instance.setValue(dataset.attribute("fee"), fee.doubleValue());
                 instance.setValue(dataset.attribute("confirmations"), transaction.get("confirmations").getAsInt());
@@ -503,12 +523,24 @@ public class BtcTransacGen extends ClassificationGenerator {
 
                 dataset.add(instance);
                 i += 1;
+
+                long currentTime = System.currentTimeMillis();
+                long timeElapsed = currentTime - startTime;
+                if (timeElapsed > 0) { // Avoid division by zero
+                    estimatedTransactionsPerMinute = (int) (i / (timeElapsed / 60000.0));
+                    if (getRunBasedOnTime()) {
+                        long timeRemaining = endTime - currentTime;
+                        totalToGenerate = i + (int) (estimatedTransactionsPerMinute * (timeRemaining / 60000.0));
+                    }
+                }
+
+                updateProgressBar(i, totalToGenerate);
+
             }
 
             try {
                 Map<String, Object> result = jsonRpcClient.unloadWallet(randomWalletName);
                 String warning = (String) result.get("warning");
-                Application.LOGGER.info("Wallet unloaded: " + randomWalletName);
                 if (warning != null) {
                     Application.LOGGER.warning("Warning: " + warning);
                 }
@@ -521,6 +553,7 @@ public class BtcTransacGen extends ClassificationGenerator {
             DockerBtcTransacGen.dockerRm("docker-bitcoin-node1-1", dockerClient);
             DockerBtcTransacGen.dockerStop("docker-bitcoin-node2-1", dockerClient);
             DockerBtcTransacGen.dockerRm("docker-bitcoin-node2-1", dockerClient);
+            LOGGER.info("%%End of generation");
 
             return dataset;
         } else {
@@ -528,9 +561,29 @@ public class BtcTransacGen extends ClassificationGenerator {
             return dataset;
         }
     }
+
+    private static void updateProgressBar(int completed, int total) {
+        int barWidth = 50; // Width of the progress bar in characters
+        int progress = (int) ((double) completed / total * barWidth);
+
+        StringBuilder bar = new StringBuilder("[");
+        for (int i = 0; i < barWidth; i++) {
+            if (i < progress) {
+                bar.append("#");
+            } else {
+                bar.append(" ");
+            }
+        }
+        bar.append("]");
+
+        System.out.print("\r" + bar.toString() + " " + (int) ((double) completed / total * 100) + "%");
+    }
+
+
+
     public static void main(String[] args) {
 
-        LOGGER.info("Generating transactions");
+        LOGGER.info("%%Generating transactions");
         runDataGenerator(new BtcTransacGen(), args);
     }
 
