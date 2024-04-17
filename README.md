@@ -1,9 +1,157 @@
 # Application Setup and Execution Guide
 
-This guide provides step-by-step instructions for setting up and running the Application in conjunction with Bitcoin Core in `regtest` mode.
+This guide provides step-by-step instructions for setting up and running the Application in conjunction with bitcoind in `regtest` mode.
+## For Linux 
+### Requirements
+The BtcTransacGen Weka extension has been tested and is supported on the
+following Linux distribution : 
+   - Ubuntu 22.04
+   - Ubuntu 20.04
+   - Kali 2023.3
+   - Fedora 39
+
+1. Download and install [**WEKA**](https://waikato.github.io/weka-wiki/downloading_weka/#linux) (3.8.6+) for Linux  
+2. Check if **Docker** is already installed 
+```shell
+docker -v
+```
+If not, download and install **Docker** 
+```shell
+sudo apt install docker.io
+```
+3. Check if **Java JDK 17 or +** is already installed
+```shell
+java -version
+```
+If not, download and install [**JDK 17 or +**](https://www.oracle.com/fr/java/technologies/downloads/) for Linux
+
+4. Check if Maven **3.8.6 or +** is already installed
+```shell
+mvn -v
+```
+If not [download](https://maven.apache.org/download.cgi) and [install](https://maven.apache.org/install.html) **Maven** for Linux
+
+5. Open a terminal at the root of the project directory and run the setup file
+```shell
+./setup.sh
+```
+
+### Packaging for WEKA
+To create a package for integration with WEKA:
+
+1. **Package the Application**
+   
+   Inside the `btc-transactions-generator/` folder, clean and package the project with Maven:
+
+   ```shell
+   mvn clean package
+   ```
+
+   This command generates a `.zip` file in the project's `dist` folder.
+
+2. **Import the Package into WEKA**
+
+   - Launch WEKA from the previoulsy installed folder
+      ```shell
+      ./weka.sh
+      ```
+   - Navigate to `Tools > Package Manager > Unofficial > File/URL`
+
+      ![alt text](images/image.png)
+      ![alt text](images/image-1.png)
+   - Select the `.zip` file created by the previous step, import it, and restart WEKA for the changes to take effect
+
+      ![alt text](images/image-2.png)
+
+### Running the generator
+   1. Lauch WEKA with privileges
+   ```shell
+   sudo ./weka.sh
+   ```
+   2. Navigate to `Explorer > Generate > Choose ` and select the `BtcTransacGen` 
+
+      ![alt text](images/image-3.png)
+      ![alt text](images/image-5.png)
+   3. Enter the parameters you want and click on `generate`
+
+      ![alt text](images/image-6.png)
+
+## For Windows
+### Requirements
+The BtcTransacGen Weka extension has been tested and is supported on the
+following Widonws distribution : 
+   - Windows 11
+   - Windows 10
+
+1. Download and install [**WEKA**](https://waikato.github.io/weka-wiki/downloading_weka/#windows) (3.8.6+) for Windows  
+2. Download and install [**Docker**](https://docs.docker.com/desktop/install/windows-install/) for Windows 
+3. Download and install [**JDK 17 or +**](https://www.oracle.com/fr/java/technologies/downloads/#jdk22-windows/) for Windows
+
+4. [Download](https://maven.apache.org/download.cgi) and [install](https://maven.apache.org/install.html) **Maven** for Windows [(see here)](https://maven.apache.org/guides/getting-started/windows-prerequisites.html)
 
 
-## NEW VERSION
+5. Create a directory `.bitcoin\` located in `C:\Users\<user>`
+6. Create a `bitcoin.conf` file located in `C:\Users\<user>\.bitcoin\` with the following settings : 
+   ```plaintext
+   # Maintain full transaction index, used in lookups by the getrawtransaction call
+   txindex=1
+   listen=1
+
+   # Run bitcoind in regtest mode
+   regtest=1
+
+   # Accept command line and JSON-RPC commands
+   server=1
+   walletbroadcast=1
+
+   # Tells bitcoind that the RPC API settings on the following lines apply to the regtest RPC API
+   [regtest]
+
+   # RPC API settings
+   rpcconnect=localhost
+   rpcport=9997
+   rpcuser=user
+   rpcpassword=WLMClI3cZ3ghE3diSTK-ENHSenP0bnthnbYmrAg7hcM
+   rpcallowip=0.0.0.0/0
+   rpcbind=0.0.0.0.
+   ```
+
+### Packaging for WEKA
+To create a package for integration with WEKA:
+
+1. **Package the Application**
+   
+   Inside the `btc-transactions-generator\` folder, clean and package the project with Maven:
+
+   ```shell
+   mvn clean package
+   ```
+
+   This command generates a `.zip` file in the project's `dist` folder.
+
+2. **Import the Package into WEKA**
+
+   - Launch WEKA 
+   - Navigate to `Tools > Package Manager > Unofficial > File/URL`
+
+      ![alt text](images/image.png)
+      ![alt text](images/image-1.png)
+   - Select the `.zip` file created by the previous step, import it, and restart WEKA for the changes to take effect
+
+      ![alt text](images/image-2.png)
+
+### Running the generator
+   1. Lauch WEKA
+   2. Navigate to `Explorer > Generate > Choose ` and select the `BtcTransacGen` 
+
+      ![alt text](images/image-3.png)
+      ![alt text](images/image-5.png)
+   3. Enter the parameters you want and click on `generate`
+
+      ![alt text](images/image-6.png)
+
+<!---
+## DEPRECATED
 
 1. **Download and Install Docker**
 
@@ -116,7 +264,7 @@ To create a package for integration with WEKA:
 - Click on `Generate`.
 - Select `BtcTransacGen`, adjust the number of transactions as desired, and click `Generate`.
 - **Note**: Make sure the `bitcoind` server is running before attempting to generate transactions.
-
+-->
 ### Troubleshooting
 
 If you encounter any issues, consider deleting the `regtest` folder within your Bitcoin Core data directory (`AppData/Roaming/Bitcoin` on Windows, or the corresponding directory on Unix systems), then restart the `bitcoind` server and try regenerating the transactions.
