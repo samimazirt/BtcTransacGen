@@ -1,0 +1,92 @@
+\documentclass[conference]{IEEEtran}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is main.tex, as on 22.04.2021.
+% This is an unofficial template for Menelaos-NT(https://www.menelaos-nt.eu/) Research Report template based on [IEEE - Manuscript Templates for Conference Proceedings](https://www.ieee.org/conferences/publishing/templates.html) by Michael Shell.
+% A modification was made by Zhouyan Qiu.
+% Manual: IEEEtran_HOWTO.pdf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage[english]{babel}
+
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+\fancypagestyle{firstpagefooter}{%
+  \fancyhf{}
+  \renewcommand\headrulewidth{0pt}
+  \fancyfoot[R]{EPITA}
+}
+
+\pagestyle{empty}
+
+\begin{document}
+\title{Transaction Simulation on Bitcoin's Blockchain for Machine Learning Studies}
+
+\author{\IEEEauthorblockN{ S. Mazirt, E. Nguefeu, A. Lefrançois, J. Sa}
+\IEEEauthorblockA{\textit{EPITA} \\
+}}
+
+\maketitle
+
+\begin{abstract}
+In order to predict specific behaviors, large datasets are required for machine learning. However, the scarcity of transaction simulators capable of generating authentic Bitcoin\cite{nakamoto2008bitcoin} like transactions poses a significant challenge, largely due to limited licensing protections. 
+
+In response, this paper provides a transaction generator specifically designed for Bitcoin's blockchain, leveraging Bitcoin Core\cite{bitcoincore}. Our approach fills this gap by offering a transaction generator capable of producing contextualized and realistic data. 
+
+By providing this tool, we aim to facilitate comprehensive studies of transactional behaviors on Bitcoin's blockchain using machine learning and deep learning methods within the WEKA platform\cite{weka}.
+\end{abstract}
+
+\thispagestyle{firstpagefooter}
+
+\section{Introduction}
+
+Predicting behaviors within blockchain systems, particularly in Bitcoin's case, demands large datasets for effective analysis. Transaction simulators serve as indispensable tools for studying and experimenting with various machine learning and deep learning methodologies. However, the availability of transaction simulators capable of generating authentic Bitcoin-like transactions is limited due to insufficient licensing protections. To address this challenge, this study introduces a transaction generator tailored specifically for Bitcoin's blockchain, powered by Bitcoin Core. Our approach aims to bridge the current gap by providing transaction simulators capable of generating contextualized and realistic data, thus enabling the prediction of transactional behaviors.
+
+\section{Overview of existing transactions generators}
+
+Accurate simulation allows researchers and practitioners to explore various scenarios, test hypotheses, and validate models. However, existing transaction simulators often lack the capability to generate realistic data, particularly in the context of Bitcoin transactions. Moreover, the scarcity of licensed transaction simulators further complicates research efforts in this domain.
+
+\section{Implementation}
+
+Our approach utilizes Bitcoin Core, the reference implementation of the Bitcoin protocol, to develop a transaction generator tailored for Bitcoin's blockchain. By leveraging the capabilities of Bitcoin Core, we ensure the authenticity and accuracy of the generated transactions. The generator is designed to produce contextualized data that closely resembles real-world Bitcoin transactions, thereby facilitating meaningful analysis and prediction.
+
+The transaction generator is implemented within the WEKA platform, a widely used tool for data mining and machine learning tasks. Integration with WEKA enhances th,e accessibility and usability of the generator, allowing researchers to seamlessly incorporate generated datasets into their analytical workflows. The generator offers flexibility in specifying the number of transactions to generate and imposes limitations on generation time to accommodate varying research requirements.
+
+\section{Future prospects and developments}
+
+ By providing researchers with access to realistic transaction data, our approach empowers them to conduct in-depth analyses and develop robust predictive models. Furthermore, the integration of the generator with the WEKA platform enhances its utility and usability, facilitating seamless integration into existing research workflows.
+
+\section{Conclusion}
+
+This project aimed to researchers allow generating contextualized and realistic transaction data for predictive analytics. Thanks to its integration with the WEKA platform, the generator can be used to study transactional behaviors on Bitcoin's blockchain using machine learning and deep learning methods.
+
+%% If you have bibdatabase file and want bibtex to generate the
+%% bibitems, please use
+%%
+\bibliographystyle{IEEEtran} 
+\bibliography{Mybib.bib}
+
+%% else use the following coding to input the bibitems directly in the
+%% TeX file.
+
+% \begin{thebibliography}{00}
+
+% %% \bibitem{label}
+% %% Text of bibliographic item
+
+% \bibitem{}
+
+% \end{thebibliography}
+
+\end{document}
