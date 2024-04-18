@@ -1,4 +1,4 @@
-# Application Setup and Execution Guide
+# BtcTransacGen 1.0 : Application Setup and Execution Guide
 
 This guide provides step-by-step instructions for setting up and running the Application in conjunction with bitcoind in `regtest` mode.
 ## For Linux 
@@ -142,11 +142,12 @@ To create a package for integration with WEKA:
 
 ### Running the generator
    1. Lauch WEKA
-   2. Navigate to `Explorer > Generate > Choose ` and select the `BtcTransacGen` 
+   2. Make sure Docker Engine is running
+   3. Navigate to `Explorer > Generate > Choose ` and select the `BtcTransacGen` 
 
       ![alt text](images/image-3.png)
       ![alt text](images/image-5.png)
-   3. Enter the parameters you want and click on `generate`
+   4. Enter the parameters you want and click on `generate`
 
       ![alt text](images/image-6.png)
 
@@ -265,6 +266,19 @@ To create a package for integration with WEKA:
 - Select `BtcTransacGen`, adjust the number of transactions as desired, and click `Generate`.
 - **Note**: Make sure the `bitcoind` server is running before attempting to generate transactions.
 -->
-### Troubleshooting
 
-If you encounter any issues, consider deleting the `regtest` folder within your Bitcoin Core data directory (`AppData/Roaming/Bitcoin` on Windows, or the corresponding directory on Unix systems), then restart the `bitcoind` server and try regenerating the transactions.
+## Uninstall the package
+
+To uninstall the package, navigate to `Tools > Package Manager`, check `Installed`, select `BtcTransacGen` and click on `Uninstall`
+
+   ![alt text](images/image-8.png)
+
+## Troubleshooting
+
+   - If you run into the following error, make sure Docker Engine is running 
+   
+      ![alt text](images/image-7.png)
+
+## To Do
+
+- [ ] Clean parameters' description
