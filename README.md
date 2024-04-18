@@ -271,13 +271,13 @@ To create a package for integration with WEKA:
 
 To uninstall the package, navigate to `Tools > Package Manager`, check `Installed`, select `BtcTransacGen` and click on `Uninstall`
 
-   ![alt text](images/image-7.png)
+   ![alt text](images/image-8.png)
 
 ## Troubleshooting
 
    - If you run into the following error, make sure Docker Engine is running 
    
-      ![alt text](images/image-8.png)
+      ![alt text](images/image-7.png)
 
 ## To Do
 
