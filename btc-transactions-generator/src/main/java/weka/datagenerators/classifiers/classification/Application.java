@@ -137,8 +137,6 @@ public class Application extends Thread {
         String sentRawTransactionID = client.sendToAddress(addr2, amountToTransfer);
         BitcoindRpcClient.Transaction transactionObj = client.getTransaction(sentRawTransactionID);
 
-        System.out.println("balance: " + client.getBalance());
-
         try {
             Map<String, Object> result = secondNode.unloadWallet(randomWalletName);
             String warning = (String) result.get("warning");

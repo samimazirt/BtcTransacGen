@@ -45,15 +45,10 @@ public class BtcTransacGen extends ClassificationGenerator {
     static final Logger LOGGER = Logger.getLogger(BtcTransacGen.class.getName());
 
     /**
-     * generate for durationMinutes minutes or generate numTransactions transactions
+     * generate for durationMinutes minutes or generate numExamples transactions
      */
-    protected boolean m_runBasedOnTime = false; // Default is false, run based on numTransactions
+    protected boolean m_runBasedOnTime = false; // Default is false, run based on numExamples
 
-
-    /**
-     * the number of transactions to generate
-     */
-    protected int m_NumTransactions;
 
     /**
      * the Duration in minutes of generation
@@ -66,7 +61,7 @@ public class BtcTransacGen extends ClassificationGenerator {
     public BtcTransacGen() {
         super();
 
-        setNumTransactions(defaultNumTransactions());
+        setNumExamplesAct(getNumExamples());
         setDurationMinutes(defaultDurationMinutes());
     }
 
@@ -156,8 +151,8 @@ public class BtcTransacGen extends ClassificationGenerator {
         Vector<Option> result = enumToVector(super.listOptions());
         result.add(new Option("\tWhether to run based on time instead of transaction count (default: run by transaction count).",
                 "t", 0, "-t"));
-        result.add(new Option("\tThe number of transactions to generate (default " + defaultNumTransactions() + ").",
-                "n", 1, "-b <numTransactions>"));
+        result.add(new Option("\tThe number of transactions to generate (default 100).",
+                "n", 1, "-n <numExamples>"));
 
         result.add(new Option("\tThe duration of generation (default " + defaultDurationMinutes() + ").",
                 "d", 2, "-m <durationMinutes>"));
@@ -177,12 +172,6 @@ public class BtcTransacGen extends ClassificationGenerator {
 
         this.setRunBasedOnTime(Utils.getFlag('t', options));
 
-        String numTransactionsStr = Utils.getOption('b', options);
-        if (numTransactionsStr.length() != 0) {
-            setNumTransactions(Integer.parseInt(numTransactionsStr));
-        } else {
-            setNumTransactions(defaultNumTransactions());
-        }
 
         String durationStr = Utils.getOption('m', options);
 
@@ -216,22 +205,11 @@ public class BtcTransacGen extends ClassificationGenerator {
         for (i = 0; i < options.length; i++) {
             result.add(options[i]);
         }
-        result.add("-b");
-        result.add("" + getNumTransactions());
 
         result.add("-m");
         result.add("" + getDurationMinutes());
 
         return result.toArray(new String[result.size()]);
-    }
-
-    /**
-     * returns the default number of transactions
-     *
-     * @return the default number of transactions
-     */
-    protected int defaultNumTransactions() {
-        return 5; // Default number of transactions
     }
 
     /**
@@ -243,14 +221,6 @@ public class BtcTransacGen extends ClassificationGenerator {
         return 5; // Default number of transactions
     }
 
-    /**
-     * Sets the number of transactions to generate.
-     *
-     * @param numTransactions the new number of transactions
-     */
-    public void setNumTransactions(int numTransactions) {
-        m_NumTransactions = numTransactions;
-    }
 
     /**
      * Sets the duration of generation.
@@ -263,36 +233,6 @@ public class BtcTransacGen extends ClassificationGenerator {
 
     public String durationMinutesTipText() {
         return "The duration in minutes for which the transaction generation process should run.";
-    }
-
-    /**
-     *
-     * Parsing options
-     */
-    public void optionsParser(String[] options) throws Exception {
-
-        String tmpStr = Utils.getOption('n', options);
-        if (tmpStr.length() != 0) {
-            setNumTransactions(Integer.parseInt(tmpStr));
-        } else {
-            setNumTransactions(defaultNumTransactions());
-        }
-
-        String tm = Utils.getOption('n', options);
-        if (tm.length() != 0) {
-            setDurationMinutes(Integer.parseInt(tm));
-        } else {
-            setDurationMinutes(defaultDurationMinutes());
-        }
-    }
-
-    /**
-     * Gets the number of transactions to generate.
-     *
-     * @return the number of transactions to generate
-     */
-    public int getNumTransactions() {
-        return m_NumTransactions;
     }
 
     /**
@@ -310,8 +250,8 @@ public class BtcTransacGen extends ClassificationGenerator {
      * @return tip text for this property suitable for displaying in the
      * explorer/experimenter gui
      */
-    public String numTransactionsTipText() {
-        return "The number of transactions to generate.";
+    public String runBasedOnTimeTipText() {
+        return "Bool value to decide if we generate based on time or on numExamples.";
     }
 
     /**
@@ -475,11 +415,11 @@ public class BtcTransacGen extends ClassificationGenerator {
             System.out.println("btc balance: " + jsonRpcClient.getBalance());
 
             long endTime = startTime + getDurationMinutes() * 60000;
-            int totalToGenerate = getRunBasedOnTime() ? (getDurationMinutes() * 60 / 5) : getNumTransactions(); // Assuming each transaction takes about 5 seconds, adjust as necessary
+            int totalToGenerate = getRunBasedOnTime() ? (getDurationMinutes() * 60 / 5) : getNumExamples(); // Assuming each transaction takes about 5 seconds, adjust as necessary
 
             int estimatedTransactionsPerMinute = 8; // Estimate how many transactions you expect to generate per minute
             int i = 0; //transaction incrementer
-            while ((getRunBasedOnTime() && System.currentTimeMillis() < endTime) || (!getRunBasedOnTime() && i < getNumTransactions())) {
+            while ((getRunBasedOnTime() && System.currentTimeMillis() < endTime) || (!getRunBasedOnTime() && i < getNumExamples())) {
                 BigDecimal minFeeAmount = BigDecimal.valueOf(0.00001); // Minimum amount
                 BigDecimal maxFeeAmount = BigDecimal.valueOf(0.0004);
                 BigDecimal fee = Application.generateRandomFeeBTC(minFeeAmount, maxFeeAmount);
